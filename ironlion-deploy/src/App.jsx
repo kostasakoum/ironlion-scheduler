@@ -61,6 +61,14 @@ const _initialClashes = new Set(Object.keys(_initialCount).filter(k => _initialC
 const MEMBER_LOOKUP = {};
 function rebuildLookup(memberList) {
   _memberList = memberList;
+  // Rebuild clashes for new member list
+  const newCount = {};
+  memberList.forEach(m => {
+    const key = `${m.firstName.trim().toLowerCase()} ${m.lastName.trim()[0].toLowerCase()}`;
+    newCount[key] = (newCount[key] || 0) + 1;
+  });
+  _initialClashes.clear();
+  Object.keys(newCount).filter(k => newCount[k] > 1).forEach(k => _initialClashes.add(k));
   Object.keys(MEMBER_LOOKUP).forEach(k => delete MEMBER_LOOKUP[k]);
   memberList.forEach(m => {
   const fn = m.firstName.trim().toLowerCase();
@@ -894,6 +902,7 @@ export default function GymScheduler() {
   const [blankDay, setBlankDay] = useState(null);
   const [isBlankTemplate, setIsBlankTemplate] = useState(false);
   const membersRef = useRef(MEMBERS_FALLBACK);
+  const [membersLoaded, setMembersLoaded] = useState(0);
 
   useEffect(() => {
     fetch("/api/members")
@@ -902,6 +911,8 @@ export default function GymScheduler() {
         if (data && Array.isArray(data) && data.length > 0) {
           membersRef.current = data;
           rebuildLookup(data);
+          // If a schedule is already showing, rebuild it with the fresh member data
+          setMembersLoaded(prev => prev + 1);
         }
       })
       .catch(() => {});
@@ -1074,6 +1085,21 @@ export default function GymScheduler() {
       }
     }
   }, []);
+
+  // Rebuild schedule when fresh member data arrives
+  useEffect(() => {
+    if (membersLoaded === 0 || !day || !entries) return;
+    const cfg = DAY_CONFIG[day];
+    if (!cfg) return;
+    const result = {};
+    cfg.hours.forEach(h => {
+      const hourMembers = entries.filter(e => e.hour === h);
+      result[h] = { ...buildHourAssignment(day, h, hourMembers, hourMembers.length), total: hourMembers.length };
+    });
+    setSchedule(result);
+    setOverrides({});
+    setCoachOverrides({});
+  }, [membersLoaded]);
 
   const processFile = useCallback(async (file) => {
     setError(null);
