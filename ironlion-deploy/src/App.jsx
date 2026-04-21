@@ -1163,6 +1163,7 @@ export default function GymScheduler() {
 
       // Auto-apply calendar assessments for this date
       const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
+      console.log("calendarData at drop:", JSON.stringify(calendarData), "dateStr:", dateStr);
       if (dateStr && calendarData[dateStr]) {
         const asmts = calendarData[dateStr];
         const newAssessments = {};
