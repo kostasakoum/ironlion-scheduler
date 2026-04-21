@@ -992,7 +992,7 @@ export default function GymScheduler() {
     setSchedule(result);
     setOverrides({});
     setCoachOverrides({});
-  }, [day]);
+  }, [day, calendarData]);
 
   const buildAndApplyShift = useCallback((detectedDay, parsed, shift, dateObj) => {
     const activeDay = shift === "AM" ? detectedDay + "AM" : detectedDay;
@@ -1048,7 +1048,7 @@ export default function GymScheduler() {
         setAssessmentNames(newAssessmentNames);
       }
     }
-  }, []);
+  }, [calendarData]);
 
   const processFile = useCallback(async (file) => {
     setError(null);
@@ -1185,7 +1185,7 @@ export default function GymScheduler() {
         setAssessmentNames(newAssessmentNames);
       }
     } catch(e) { setError("Parse error: "+e.message); }
-  }, [day]);
+  }, [day, calendarData]);
 
   const onDrop = useCallback(e => { e.preventDefault(); setDragging(false); const f=e.dataTransfer.files[0]; if(f) processFile(f); }, [processFile]);
   const onFileChange = useCallback(e => { const f=e.target.files[0]; if(f) processFile(f); }, [processFile]);
