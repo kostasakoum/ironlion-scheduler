@@ -13,7 +13,6 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Get access token (same JWT flow as assessments)
     const now = Math.floor(Date.now() / 1000);
     const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url");
     const header = b64url({ alg: "RS256", typ: "JWT" });
@@ -39,47 +38,35 @@ module.exports = async function handler(req, res) {
         assertion: jwt,
       }),
     });
-    const { access_token } = await tokenRes.json();
-    if (!access_token) return res.status(500).json({ error: "No access token" });
+    const tokenJson = await tokenRes.json();
+    const access_token = tokenJson.access_token;
 
-    // Fetch sheet data — columns A:K (Order through ME COACH), starting row 3
+    if (!access_token) {
+      return res.status(500).json({ error: "No access token", details: tokenJson });
+    }
+
+    // Fetch sheet data
     const range = encodeURIComponent("A3:K2000");
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`;
     const sheetRes = await fetch(url, {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     const sheetData = await sheetRes.json();
-    const rows = sheetData.values || [];
 
-    // Row 0 is the header, data starts at row 1
-    // Cols: 0=Order, 1=ID, 2=First Name, 3=Last Name, 9=Status, 10=ME COACH
-    const members = [];
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const firstName = (row[2] || "").trim();
-      const lastName = (row[3] || "").trim();
-      const status = (row[9] || "").trim();
-      const coach = (row[10] || "").trim();
-
-      if (!firstName || !lastName) continue;
-      if (status.toLowerCase() === "inactive") continue;
-
-      // Normalize coach name
-      const coachMap = {
-        "chris": "Chris C", "chris c": "Chris C", "chris carlsen": "Chris C",
-        "kostas": "Kostas", "andrew": "Andrew", "hayley": "Hayley",
-        "nick": "Nick", "elijah": "Elijah", "troy": "Troy",
-        "ricky": "Ricky", "chris e": "Chris E",
-        "n/a": null, "jason": null,
-      };
-      const coachKey = coach.toLowerCase();
-      if (coachKey in coachMap && coachMap[coachKey] === null) continue; // skip unassigned
-      const normalizedCoach = coachMap[coachKey] || coach;
-
-      members.push({ firstName, lastName, coach: normalizedCoach });
+    if (sheetData.error) {
+      return res.status(500).json({ error: "Sheets API error", details: sheetData.error });
     }
 
-    res.status(200).json(members);
+    const rows = sheetData.values || [];
+    return res.status(200).json({
+      debug: true,
+      totalRows: rows.length,
+      firstRow: rows[0],
+      row500: rows[499],
+      row1000: rows[999],
+      lastRow: rows[rows.length - 1],
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
