@@ -128,9 +128,7 @@ function isFemale(firstName) {
 // ─── CALENDAR ASSESSMENTS (injected by Claude before download) ───────────────
 // Format: { "YYYY-MM-DD": [ { hour: 18, member: "Andrew" }, ... ] }
 // This gets updated each time you upload a Mindbody file in Claude
-// Calendar assessments are fetched dynamically via /api/assessments
-// Falls back to empty object if API is unavailable
-const CALENDAR_ASSESSMENTS = {};
+const CALENDAR_ASSESSMENTS = {}; // populated dynamically from Google Calendar API
 
 const DAY_CONFIG = {
   Monday: {
@@ -886,19 +884,11 @@ export default function GymScheduler() {
   const [isBlankTemplate, setIsBlankTemplate] = useState(false);
   const [calendarData, setCalendarData] = useState({});
 
-  // Fetch assessments from Google Calendar API on mount
   useEffect(() => {
-    const fetchAssessments = async () => {
-      try {
-        const res = await fetch("/api/assessments");
-        if (!res.ok) return;
-        const data = await res.json();
-        setCalendarData(data);
-      } catch (e) {
-        console.warn("Could not fetch calendar assessments:", e);
-      }
-    };
-    fetchAssessments();
+    fetch("/api/assessments")
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setCalendarData(data))
+      .catch(() => {});
   }, []);
   const [light, setLight] = useState(true);
   // overrides[hour][zone] = members[] — tracks manual drag changes
