@@ -72,13 +72,14 @@ module.exports = async function handler(req, res) {
 
       for (const event of (eventsData.items || [])) {
         if (!event.start?.dateTime) continue;
-        const dt = new Date(event.start.dateTime);
-        // Convert to Eastern time for correct hour/date
-        const etStr = dt.toLocaleString("en-US", { timeZone: "America/New_York" });
-        const etDate = new Date(etStr);
-        const dateStr = dt.toLocaleDateString("en-CA", { timeZone: "America/New_York" }); // YYYY-MM-DD
-        const hour = etDate.getHours();
-        const isHalfHour = etDate.getMinutes() === 30;
+        // Use the dateTime string directly — Google Calendar returns it in local time
+        // e.g. "2026-04-23T09:00:00-04:00" — parse hour directly from string
+        const dtStr = event.start.dateTime;
+        const timePart = dtStr.match(/T(\d{2}):(\d{2}):/);
+        const hour = timePart ? parseInt(timePart[1]) : 0;
+        const isHalfHour = timePart ? parseInt(timePart[2]) === 30 : false;
+        // Extract date from the local time string (before T)
+        const dateStr = dtStr.split("T")[0];
         const member = (event.summary || "").split(" - ")[0].trim();
         if (!member) continue;
 
