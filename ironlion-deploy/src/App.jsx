@@ -263,15 +263,15 @@ const DAY_CONFIG = {
       6:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
       7:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
       8:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      9:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      10: { Rack:["Hayley","Nick"], "Turf-A":["Troy"], "Turf-B":[], Back:["Elijah"] },
+      9:  { Rack:["Hayley","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
+      10: { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
       11: { Rack:["Hayley","Nick"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
-      12: { Rack:[], "Turf-A":[], "Turf-B":[], Back:["Chris C"] },
+      12: { Rack:["Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
-    foundations: { 10:"Elijah" },
-    foundationsFallback: ["Troy","Nick","Hayley","Chris C"],
+    foundations: { 10:"Nick" },
+    foundationsFallback: ["Troy","Elijah","Hayley","Chris C"],
     foundationsZoneOverride: { 10: () => "Back" },
-    absentAt: { "Chris C": [10] },
+    breakAt: { "Chris C": [10] },
     zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -288,7 +288,7 @@ const DAY_CONFIG = {
       7:  { Rack:["Nick","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Nick","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
-      10: { Rack:["Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Troy"] },
+      10: { Rack:["Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Chris C","Troy"] },
       11: { Rack:["Andrew"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       12: { Rack:["Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
@@ -296,7 +296,7 @@ const DAY_CONFIG = {
     foundationsTurf: { 7: true },
     foundationsFallback: ["Troy","Elijah","Nick","Andrew","Ricky"],
     foundationsZoneOverride: { 8: () => "Back", 10: () => "Back" },
-    absentAt: { "Chris C": [10] },
+    breakAt: { "Chris C": [10] },
     zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -312,14 +312,14 @@ const DAY_CONFIG = {
       7:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:[] },
-      10: { Rack:["Hayley"], "Turf-A":["Troy"], "Turf-B":[], Back:["Elijah"] },
+      10: { Rack:["Hayley"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Elijah"] },
       11: { Rack:["Hayley"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       12: { Rack:["Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 8:"Elijah", 10:"Elijah" },
     foundationsFallback: ["Troy","Nick","Hayley","Chris C"],
     foundationsZoneOverride: { 10: () => "Back" },
-    absentAt: { "Chris C": [10] },
+    breakAt: { "Chris C": [10] },
     zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -333,7 +333,7 @@ const DAY_CONFIG = {
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
-      7:  { Rack:["Hayley","Ricky"], "Turf-A":[], "Turf-B":["Chris C"], Back:["Troy"] },
+      7:  { Rack:["Hayley","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Chris C","Troy"] },
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       10: { Rack:["Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Troy"] },
@@ -342,9 +342,8 @@ const DAY_CONFIG = {
     },
     foundations: { 7:"Troy", 10:"Troy" },
     foundationsFallback: ["Troy","Elijah","Nick","Hayley","Andrew"],
-    foundationsZoneOverride: { 7: () => "Back", 10: () => "Back" },
+    foundationsZoneOverride: { 10: () => "Back" },
     bodiesInMotion: { 7:"Chris C" },
-    bodiesInMotionZone: { 7:"Turf-B" },
     zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -360,8 +359,8 @@ const DAY_CONFIG = {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
       7:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      9:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
-      10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Nick"] },
+      9:  { Rack:["Hayley","Ricky","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
+      10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
       11: { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Nick","Chris C"] },
       12: { Rack:["Nick","Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
@@ -369,7 +368,7 @@ const DAY_CONFIG = {
     foundationsTurf: { 8: true },
     foundationsFallback: ["Troy","Elijah","Nick","Hayley","Ricky"],
     foundationsZoneOverride: { 10: () => "Back" },
-    absentAt: { Nick:[9], "Chris C":[10] },
+    breakAt: { Nick:[9], "Chris C":[10] },
     zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -587,6 +586,11 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   if (foundCoach && hasFoundations && !foundCoachAbsent) busy.add(foundCoach);
   if (infernoCoach) busy.add(infernoCoach);
   if (bodiesCoach) busy.add(bodiesCoach);
+  // Mark break coaches as busy — they show on schedule but get no members
+  const breakCoaches = cfg.breakAt || {};
+  Object.entries(breakCoaches).forEach(([coach, hours]) => {
+    if (hours.includes(hour)) busy.add(coach);
+  });
 
   // Apply 9 rule for Thursday (skip if Nick is absent)
   if (dayName === "Thursday" && cfg.nineRule && !(absentSet?.has("Nick"))) {
@@ -1346,7 +1350,12 @@ export default function GymScheduler() {
             <div style={{ fontSize:11, color:t.dim }}>XLSX · CSV · XLS</div>
           </div>
           {error && <div style={{ marginTop:12, color:"#dc2626", fontSize:12, padding:"8px 12px", background:"#fef2f2", borderRadius:4 }}>{error}</div>}
-          <div style={{ marginTop:16, textAlign:"center" }}>
+          <div style={{ marginTop:16, textAlign:"center", display:"flex", gap:10, justifyContent:"center" }}>
+            <a href="https://clients.mindbodyonline.com/app/business/Report/Staff/ScheduleAtAGlance?reportID=undefined"
+              target="_blank" rel="noopener noreferrer"
+              style={{ fontSize:12, fontWeight:600, padding:"8px 20px", border:`1px solid ${t.border}`, borderRadius:4, background:t.surface, color:t.muted, cursor:"pointer", fontFamily:"inherit", textDecoration:"none", display:"inline-flex", alignItems:"center" }}>
+              Open Mindbody Report
+            </a>
             <button onClick={() => setBlankStep("day")}
               style={{ fontSize:12, fontWeight:600, padding:"8px 20px", border:`1px solid ${t.border}`, borderRadius:4, background:t.surface, color:t.muted, cursor:"pointer", fontFamily:"inherit" }}>
               Print Blank Template
@@ -1597,6 +1606,10 @@ export default function GymScheduler() {
               }
 
               // Commit coach positions immediately — always
+              // If moving Open Gym out, clear it from the source zone
+              if (coachName === "Open Gym") {
+                newCoachOverride[fromZone] = (newCoachOverride[fromZone]||[]).filter(c => c.coach !== "Open Gym");
+              }
               setCoachOverrides(prev => ({ ...prev, [hour]: newCoachOverride }));
 
               // Build flat zone->coachName[] map
@@ -1630,7 +1643,7 @@ export default function GymScheduler() {
 
                 let membersToMove = [];
                 if (isOpenGymCoach) {
-                  // Open Gym drags: only open gym members follow
+                  // Open Gym drags: move all open gym members and clear source zone marker
                   membersToMove = fromZoneOpenGymItems;
                 } else {
                   // Use newCoachOverride (already committed) to get accurate remaining coaches
@@ -1952,7 +1965,7 @@ export default function GymScheduler() {
                         return (
                           <td key={hour} style={{ border:`1px solid ${t.border}`, background: zoneIsEmpty ? t.zoneBg : t.surface, verticalAlign:"top", padding:0 }}
                             onDragOver={onDragOverZone} onDragLeave={onDragLeaveZone} onDrop={onDropZone}>
-                            {zd.openGym && effectiveCoachesList.length === 0 ? (
+                            {zd.openGym && effectiveCoachesList.length === 0 && coachOverrides[hour]?.[zone] === undefined ? (
                               <div style={{ padding:"6px 8px", background:t.openGym, height:"100%" }}>
                                 <span
                                   draggable
