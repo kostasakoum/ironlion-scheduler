@@ -38,35 +38,52 @@ module.exports = async function handler(req, res) {
         assertion: jwt,
       }),
     });
-    const tokenJson = await tokenRes.json();
-    const access_token = tokenJson.access_token;
+    const { access_token } = await tokenRes.json();
+    if (!access_token) return res.status(500).json({ error: "No access token" });
 
-    if (!access_token) {
-      return res.status(500).json({ error: "No access token", details: tokenJson });
-    }
-
-    // Fetch sheet data
     const range = encodeURIComponent("A3:K2000");
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`;
-    const sheetRes = await fetch(url, {
-      headers: { Authorization: `Bearer ${access_token}` },
-    });
+    const sheetRes = await fetch(url, { headers: { Authorization: `Bearer ${access_token}` } });
     const sheetData = await sheetRes.json();
 
-    if (sheetData.error) {
-      return res.status(500).json({ error: "Sheets API error", details: sheetData.error });
-    }
+    if (sheetData.error) return res.status(500).json({ error: "Sheets API error", details: sheetData.error });
 
     const rows = sheetData.values || [];
-    return res.status(200).json({
-      debug: true,
-      totalRows: rows.length,
-      firstRow: rows[0],
-      row500: rows[499],
-      row1000: rows[999],
-      lastRow: rows[rows.length - 1],
-    });
 
+    const coachMap = {
+      "chris": "Chris C", "chris c": "Chris C", "chris carlsen": "Chris C",
+      "kostas": "Kostas", "andrew": "Andrew", "hayley": "Hayley",
+      "nick": "Nick", "elijah": "Elijah", "troy": "Troy",
+      "ricky": "Ricky", "chris e": "Chris E",
+    };
+
+    // Statuses to exclude
+    const excludeStatuses = new Set(["inactive", "n/a", ""]);
+
+    const members = [];
+    const seen = new Set();
+
+    for (const row of rows) {
+      const firstName = (row[2] || "").trim();
+      const lastName = (row[3] || "").trim();
+      const status = (row[9] || "").trim().toLowerCase();
+      const coachRaw = (row[10] || "").trim().toLowerCase();
+
+      if (!firstName || !lastName) continue;
+      if (excludeStatuses.has(status)) continue;
+      if (firstName === "First Name") continue; // skip header row if included
+
+      const coachKey = coachRaw;
+      if (!(coachKey in coachMap)) continue;
+
+      const key = `${firstName.toLowerCase()} ${lastName.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      members.push({ firstName, lastName, coach: coachMap[coachKey] });
+    }
+
+    res.status(200).json(members);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
