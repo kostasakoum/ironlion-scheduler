@@ -70,8 +70,11 @@ module.exports = async function handler(req, res) {
         "kostas": "Kostas", "andrew": "Andrew", "hayley": "Hayley",
         "nick": "Nick", "elijah": "Elijah", "troy": "Troy",
         "ricky": "Ricky", "chris e": "Chris E",
+        "n/a": null, "jason": null,
       };
-      const normalizedCoach = coachMap[coach.toLowerCase()] || coach;
+      const coachKey = coach.toLowerCase();
+      if (coachKey in coachMap && coachMap[coachKey] === null) continue; // skip unassigned
+      const normalizedCoach = coachMap[coachKey] || coach;
 
       members.push({ firstName, lastName, coach: normalizedCoach });
     }
