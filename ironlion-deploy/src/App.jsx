@@ -106,7 +106,7 @@ function lookupMember(firstName, lastName) {
   }
   const query = norm(`${firstName} ${lastName}`);
   let best = null, bestScore = 0;
-  members.forEach(m => {
+  membersRef.current.forEach(m => {
     const cand = norm(`${m.firstName} ${m.lastName}`);
     const score = trigramSim(query, cand);
     const fnScore = trigramSim(fn, norm(m.firstName));
@@ -890,7 +890,6 @@ export default function GymScheduler() {
   const [blankStep, setBlankStep] = useState(null); // null | "day" | "shift"
   const [blankDay, setBlankDay] = useState(null);
   const [isBlankTemplate, setIsBlankTemplate] = useState(false);
-  const [members, setMembers] = useState(MEMBERS_FALLBACK);
   const membersRef = useRef(MEMBERS_FALLBACK);
 
   useEffect(() => {
@@ -898,7 +897,6 @@ export default function GymScheduler() {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data && Array.isArray(data) && data.length > 0) {
-          setMembers(data);
           membersRef.current = data;
           rebuildLookup(data);
         }
@@ -2091,7 +2089,7 @@ export default function GymScheduler() {
                                       const suggOpen = carlsenSuggOpen[cKey] && cName.length >= 2;
 
                                       // Fuzzy suggestions from member list
-                                      const suggestions = cName.length >= 2 ? members.filter(mem => {
+                                      const suggestions = cName.length >= 2 ? membersRef.current.filter(mem => {
                                         const full = `${mem.firstName} ${mem.lastName}`.toLowerCase();
                                         const fn = mem.firstName.toLowerCase();
                                         const q = cName.toLowerCase();
@@ -2342,7 +2340,7 @@ export default function GymScheduler() {
                             {pending.map((entry, pidx) => {
                               const realIdx = (waitlist[hour]||[]).indexOf(entry);
                               const suggs = (entry.query||"").length >= 2
-                                ? members.filter(m => {
+                                ? membersRef.current.filter(m => {
                                     const full = (m.firstName+" "+m.lastName).toLowerCase();
                                     const q = entry.query.toLowerCase();
                                     return full.includes(q) || m.firstName.toLowerCase().startsWith(q) || trigramSim(norm(q), norm(full)) > 0.35;
