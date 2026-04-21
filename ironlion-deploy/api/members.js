@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
     if (!access_token) return res.status(500).json({ error: "No access token" });
 
     // Fetch sheet data — columns A:K (Order through ME COACH), starting row 3
-    const range = encodeURIComponent("A3:K");
+    const range = encodeURIComponent("A3:K2000");
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}`;
     const sheetRes = await fetch(url, {
       headers: { Authorization: `Bearer ${access_token}` },
