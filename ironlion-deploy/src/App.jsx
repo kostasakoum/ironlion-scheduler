@@ -1045,6 +1045,7 @@ export default function GymScheduler() {
       const total = hourMembers.length;
       result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total), total };
     });
+    console.log("buildAndApplyShift: schedule built, hours:", Object.keys(result));
     setSchedule(result);
     // Inject calendar assessments for this file's date
     if (dateObj) {
