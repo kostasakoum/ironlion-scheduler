@@ -73,9 +73,12 @@ module.exports = async function handler(req, res) {
       for (const event of (eventsData.items || [])) {
         if (!event.start?.dateTime) continue;
         const dt = new Date(event.start.dateTime);
-        const dateStr = dt.toISOString().split("T")[0];
-        const hour = dt.getHours();
-        const isHalfHour = dt.getMinutes() === 30;
+        // Convert to Eastern time for correct hour/date
+        const etStr = dt.toLocaleString("en-US", { timeZone: "America/New_York" });
+        const etDate = new Date(etStr);
+        const dateStr = dt.toLocaleDateString("en-CA", { timeZone: "America/New_York" }); // YYYY-MM-DD
+        const hour = etDate.getHours();
+        const isHalfHour = etDate.getMinutes() === 30;
         const member = (event.summary || "").split(" - ")[0].trim();
         if (!member) continue;
 
