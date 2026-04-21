@@ -3,21 +3,19 @@ export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET");
 
   const clientEmail = process.env.VITE_GOOGLE_CLIENT_EMAIL;
-  let privateKey = process.env.VITE_GOOGLE_PRIVATE_KEY || "";
+  const privateKeyRaw = process.env.VITE_GOOGLE_PRIVATE_KEY || "";
 
-  // Handle various newline escape formats Vercel may store
-  privateKey = privateKey
-    .replace(/\\n/g, "\n")
-    .replace(/\\\\n/g, "\n")
-    .trim();
-
-  // If key doesn't have proper PEM headers, it's malformed
-  if (!privateKey.includes("BEGIN PRIVATE KEY")) {
-    return res.status(500).json({ error: "Private key malformed — missing PEM header" });
+  // Decode from base64 if it doesn't look like a PEM key
+  let privateKey;
+  if (privateKeyRaw.includes("BEGIN PRIVATE KEY")) {
+    privateKey = privateKeyRaw.replace(/\\n/g, "\n");
+  } else {
+    // Assume base64 encoded
+    privateKey = Buffer.from(privateKeyRaw, "base64").toString("utf8");
   }
 
-  if (!clientEmail) {
-    return res.status(500).json({ error: "Missing client email" });
+  if (!clientEmail || !privateKey.includes("BEGIN PRIVATE KEY")) {
+    return res.status(500).json({ error: "Missing or malformed credentials" });
   }
 
   try {
