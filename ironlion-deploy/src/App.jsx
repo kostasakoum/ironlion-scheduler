@@ -510,7 +510,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
           );
           if (partnerCoach) {
             const z = coachZoneFn(partnerCoach);
-            if (z && zoneFill[z] < (cfg.zoneCap[z] || 7)) assigned = partnerCoach;
+            if (z) assigned = partnerCoach; // pairs always stay together regardless of cap
           }
         }
       }
@@ -2101,24 +2101,6 @@ export default function GymScheduler() {
                                         e.currentTarget.style.opacity = "0.4";
                                       }}
                                       onDragEnd={e => { e.currentTarget.style.opacity = "1"; }}
-                                      style={{ padding:"2px 8px 4px", cursor:"grab", userSelect:"none" }}>
-                                      <span style={{ fontSize:13, color:t.foundText, fontWeight:600 }}>{label}</span>
-                                    </div>
-                                  );
-                                })()}
-
-                                {/* Nutrition Seminar label — draggable */}
-                                {(() => {
-                                  const nutCount = (entries||[]).filter(e => e.hour === hour && e.isNutritionSeminar).length;
-                                  if (!nutCount) return null;
-                                  // Show in Turf-A by default, respect classLabelZone override
-                                  const labelZone = classLabelZone[hour]?.["NutritionSeminar"] || "Turf-A";
-                                  if (labelZone !== zone) return null;
-                                  const label = `Nutrition Seminar (${nutCount})`;
-                                  return (
-                                    <div draggable
-                                      onDragStart={e => { e.dataTransfer.setData("text/plain", JSON.stringify({ type:"classLabel", hour, fromZone: zone, coach:"NutritionSeminar", label })); e.currentTarget.style.opacity="0.4"; }}
-                                      onDragEnd={e => { e.currentTarget.style.opacity="1"; }}
                                       style={{ padding:"2px 8px 4px", cursor:"grab", userSelect:"none" }}>
                                       <span style={{ fontSize:13, color:t.foundText, fontWeight:600 }}>{label}</span>
                                     </div>
