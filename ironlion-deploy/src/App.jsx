@@ -478,6 +478,9 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
   const sortedSemi = [...semi].sort((a, b) => {
     const infoA = lookupMember(a.firstName, a.lastName);
     const infoB = lookupMember(b.firstName, b.lastName);
+    const aIsPair = PAIR_LOOKUP[`${a.firstName} ${a.lastName}`.toLowerCase()] ? 0 : 1;
+    const bIsPair = PAIR_LOOKUP[`${b.firstName} ${b.lastName}`.toLowerCase()] ? 0 : 1;
+    if (aIsPair !== bIsPair) return aIsPair - bIsPair; // pairs first
     const aHasCoach = infoA?.coach && !!pool[infoA.coach] ? 0 : 1;
     const bHasCoach = infoB?.coach && !!pool[infoB.coach] ? 0 : 1;
     return aHasCoach - bHasCoach;
@@ -526,9 +529,11 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
+    // Pairs ignore cap to stay with their programming coach
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZoneFn(progCoach);
-      if (z && zoneFill[z] < (cfg.zoneCap[z] || 7)) assigned = progCoach;
+      const isPairMember = !!pairInfo;
+      if (z && (isPairMember || zoneFill[z] < (cfg.zoneCap[z] || 7))) assigned = progCoach;
     }
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backCap = cfg.zoneCap["Back"] || 6;
@@ -754,7 +759,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
           );
           if (partnerCoach) {
             const z = coachZone(partnerCoach);
-            if (z && zoneFill[z] < cap(z)) assigned = partnerCoach;
+            if (z) assigned = partnerCoach; // pairs always stay together regardless of cap
           }
         }
       }
@@ -770,9 +775,10 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
+    // Pairs ignore cap to stay with their programming coach
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZone(progCoach);
-      if (z && zoneFill[z] < cap(z)) {
+      if (z && (!!pairInfo || zoneFill[z] < cap(z))) {
         assigned = progCoach;
       }
     }
