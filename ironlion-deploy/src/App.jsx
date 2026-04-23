@@ -1301,6 +1301,9 @@ export default function GymScheduler() {
           /* Zone-specific print heights */
           .zone-row td:first-child { vertical-align: middle !important; }
           .zone-row td:not(:first-child) { vertical-align: top !important; }
+          /* Prevent coach name bar from wrapping and causing uneven row heights */
+          .zone-row td .coach-name { font-size: 14px !important; }
+          .zone-row td div[style*="zoneHeader"] { flex-wrap: nowrap !important; overflow: hidden !important; }
           /* Collapse Turf-B row on print when it has no content — use height:0 not display:none to preserve rowspan */
           .no-turf-b .zone-row-Turf-B { height: 0 !important; overflow: hidden !important; border: none !important; }
           .no-turf-b .zone-row-Turf-B td { height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; font-size: 0 !important; }
@@ -2053,7 +2056,7 @@ export default function GymScheduler() {
                                             }}
                                             onDragEnd={(e) => { e.currentTarget.style.opacity = "1"; }}
                                             style={{ display:"inline-flex", alignItems:"center", gap:4, marginRight:8, cursor:"grab", userSelect:"none" }}>
-                                            <span style={{ fontSize:15, fontWeight:700, color }}>{coach}</span>
+                                            <span className="coach-name" style={{ fontSize:15, fontWeight:700, color }}>{coach}</span>
                                           </span>
                                         );
                                       })}
