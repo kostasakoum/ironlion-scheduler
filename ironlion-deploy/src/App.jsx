@@ -15,6 +15,8 @@ const NICKNAMES = {
   "bart": "Bartosz Herdzik", "bart h": "Bartosz Herdzik",
   "niko t": "Nicolaos Tzoumerkiotis", "nicolaos t": "Nicolaos Tzoumerkiotis",
   "peter t": "Phat Tran", "pete t": "Phat Tran",
+  "rich p": "Richard Postelnick", "richard p": "Richard Postelnick",
+  "dennis bells": "Dennis Hruska",
 };
 const DISPLAY_NAMES = {
   "david di maggio": "Stevie D", "genevieve gonzolaz": "Genny G",
@@ -163,7 +165,7 @@ const DAY_CONFIG = {
     },
     foundations: { 17:"Kostas", 19:"Kostas" },
     foundationsFallback: ["Chris E","Andrew","Ricky","Hayley"],
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
   Tuesday: {
@@ -183,7 +185,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Kostas","Andrew","Nick","Elijah","Hayley"],
     // Hayley always in back regardless of 9 rule
     backAlways: true,
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
   Wednesday: {
@@ -205,7 +207,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Kostas","Andrew","Ricky","Troy"],
     foundationsZoneOverride: { 17: (total) => total >= 9 ? "Back" : "Turf-A" },
     nineRule: { zones: ["Back"], fromHour: 16, coaches: ["Nick"] }, // Nick moves to back if >=9 at 4-5pm
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
   Thursday: {
@@ -225,7 +227,7 @@ const DAY_CONFIG = {
     nineRule: { backCoach: "Nick", turf: "Elijah" },
     foundations: { 17:"Elijah", 19:"Elijah" },
     foundationsFallback: ["Kostas","Andrew","Nick","Hayley"],
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
   Friday: {
@@ -243,7 +245,7 @@ const DAY_CONFIG = {
     foundations: { 17:"Elijah" },
     foundationsFallback: ["Kostas","Nick","Ricky"],
     openGym: { Back: true },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
   },
   Saturday: {
     hours: [8,9,10,11,12],
@@ -262,7 +264,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Kostas","Elijah","Hayley"],
     inferno: { 9:"Hayley", 11:"Hayley" },
     bodiesInMotion: { 8:"Andrew" },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [12] },
   },
 
@@ -287,7 +289,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Troy","Elijah","Hayley","Chris C"],
     foundationsZoneOverride: { 10: () => "Back" },
     breakAt: { "Chris C": [10] },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
 
@@ -312,7 +314,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Troy","Elijah","Nick","Andrew","Ricky"],
     foundationsZoneOverride: { 8: () => "Back", 10: () => "Back" },
     breakAt: { "Chris C": [10] },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
 
@@ -335,7 +337,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Troy","Nick","Hayley","Chris C"],
     foundationsZoneOverride: { 10: () => "Back" },
     breakAt: { "Chris C": [10] },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
 
@@ -359,7 +361,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Troy","Elijah","Nick","Hayley","Andrew"],
     foundationsZoneOverride: { 10: () => "Back" },
     bodiesInMotion: { 7:"Chris C" },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
 
@@ -384,7 +386,7 @@ const DAY_CONFIG = {
     foundationsFallback: ["Troy","Elijah","Nick","Hayley","Ricky"],
     foundationsZoneOverride: { 10: () => "Back" },
     breakAt: { Nick:[9], "Chris C":[10] },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
 
@@ -400,7 +402,7 @@ const DAY_CONFIG = {
       11: { Rack:["Nick"], "Turf-A":["Chris E"], "Turf-B":[], Back:[] },
       12: { Rack:["Nick"], "Turf-A":["Chris E"], "Turf-B":[], Back:[] },
     },
-    zoneCap: { Rack:7, "Turf-A":3, "Turf-B":2, Back:6 },
+    zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [10, 11, 12] },
   },
 };
@@ -538,8 +540,9 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backCap = cfg.zoneCap["Back"] || 6;
       const backFill = zoneFill["Back"] || 0;
-      const bestZ = bestZone(null);
-      if (coachZoneFn("Hayley") === bestZ && backFill < backCap) {
+      const hayleyZone = coachZoneFn("Hayley");
+      // Only apply Hayley preference when Hayley is actually in the Back zone
+      if (hayleyZone === "Back" && backFill < backCap) {
         assigned = "Hayley";
       }
     }
@@ -783,11 +786,12 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       }
     }
 
-    // 2. Hayley preference for women — only if Back is the most underfilled zone
+    // 2. Hayley preference for women — only when Hayley is in the Back zone
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backFill = zoneFill["Back"] || 0;
-      const bestZ = bestZone(null);
-      if (coachZone("Hayley") === bestZ && backFill < cap("Back")) {
+      const hayleyZone = coachZone("Hayley");
+      // Only apply when Hayley is actually in the Back zone
+      if (hayleyZone === "Back" && backFill < cap("Back")) {
         assigned = "Hayley";
       }
     }
@@ -1301,22 +1305,22 @@ export default function GymScheduler() {
           .no-turf-b .zone-row-Turf-B td { height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; font-size: 0 !important; }
 
           /* With Turf-B visible: Rack > Back > Turf-A > Turf-B */
-          .has-turf-b .zone-row-Rack  { height: 26vh !important; }
-          .has-turf-b .zone-row-Rack td { height: 26vh !important; }
-          .has-turf-b .zone-row-Back  { height: 24vh !important; }
-          .has-turf-b .zone-row-Back td { height: 24vh !important; }
-          .has-turf-b .zone-row-Turf-A { height: 18vh !important; }
-          .has-turf-b .zone-row-Turf-A td { height: 18vh !important; }
-          .has-turf-b .zone-row-Turf-B { height: 8vh !important; }
-          .has-turf-b .zone-row-Turf-B td { height: 8vh !important; }
+          .has-turf-b .zone-row-Rack  { height: 30vh !important; }
+          .has-turf-b .zone-row-Rack td { height: 30vh !important; }
+          .has-turf-b .zone-row-Back  { height: 27vh !important; }
+          .has-turf-b .zone-row-Back td { height: 27vh !important; }
+          .has-turf-b .zone-row-Turf-A { height: 21vh !important; }
+          .has-turf-b .zone-row-Turf-A td { height: 21vh !important; }
+          .has-turf-b .zone-row-Turf-B { height: 10vh !important; }
+          .has-turf-b .zone-row-Turf-B td { height: 10vh !important; }
 
           /* Without Turf-B: Rack > Back > Turf-A, fill the page */
-          .no-turf-b .zone-row-Rack  { height: 28vh !important; }
-          .no-turf-b .zone-row-Rack td { height: 28vh !important; }
-          .no-turf-b .zone-row-Back  { height: 26vh !important; }
-          .no-turf-b .zone-row-Back td { height: 26vh !important; }
-          .no-turf-b .zone-row-Turf-A { height: 20vh !important; }
-          .no-turf-b .zone-row-Turf-A td { height: 20vh !important; }
+          .no-turf-b .zone-row-Rack  { height: 34vh !important; }
+          .no-turf-b .zone-row-Rack td { height: 34vh !important; }
+          .no-turf-b .zone-row-Back  { height: 30vh !important; }
+          .no-turf-b .zone-row-Back td { height: 30vh !important; }
+          .no-turf-b .zone-row-Turf-A { height: 24vh !important; }
+          .no-turf-b .zone-row-Turf-A td { height: 24vh !important; }
 
           /* Assessment variants — with Turf-B */
           .has-turf-b.has-one-asmt .zone-row-Rack  { height: 20vh !important; }
