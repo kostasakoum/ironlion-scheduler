@@ -1305,22 +1305,22 @@ export default function GymScheduler() {
           .no-turf-b .zone-row-Turf-B td { height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; font-size: 0 !important; }
 
           /* With Turf-B visible: Rack > Back > Turf-A > Turf-B */
-          .has-turf-b .zone-row-Rack  { height: 30vh !important; }
-          .has-turf-b .zone-row-Rack td { height: 30vh !important; }
-          .has-turf-b .zone-row-Back  { height: 27vh !important; }
-          .has-turf-b .zone-row-Back td { height: 27vh !important; }
-          .has-turf-b .zone-row-Turf-A { height: 21vh !important; }
-          .has-turf-b .zone-row-Turf-A td { height: 21vh !important; }
-          .has-turf-b .zone-row-Turf-B { height: 10vh !important; }
-          .has-turf-b .zone-row-Turf-B td { height: 10vh !important; }
+          .has-turf-b .zone-row-Rack  { height: 37vh !important; }
+          .has-turf-b .zone-row-Rack td { height: 37vh !important; }
+          .has-turf-b .zone-row-Back  { height: 33vh !important; }
+          .has-turf-b .zone-row-Back td { height: 33vh !important; }
+          .has-turf-b .zone-row-Turf-A { height: 16vh !important; }
+          .has-turf-b .zone-row-Turf-A td { height: 16vh !important; }
+          .has-turf-b .zone-row-Turf-B { height: 8vh !important; }
+          .has-turf-b .zone-row-Turf-B td { height: 8vh !important; }
 
           /* Without Turf-B: Rack > Back > Turf-A, fill the page */
-          .no-turf-b .zone-row-Rack  { height: 34vh !important; }
-          .no-turf-b .zone-row-Rack td { height: 34vh !important; }
-          .no-turf-b .zone-row-Back  { height: 30vh !important; }
-          .no-turf-b .zone-row-Back td { height: 30vh !important; }
-          .no-turf-b .zone-row-Turf-A { height: 24vh !important; }
-          .no-turf-b .zone-row-Turf-A td { height: 24vh !important; }
+          .no-turf-b .zone-row-Rack  { height: 40vh !important; }
+          .no-turf-b .zone-row-Rack td { height: 40vh !important; }
+          .no-turf-b .zone-row-Back  { height: 35vh !important; }
+          .no-turf-b .zone-row-Back td { height: 35vh !important; }
+          .no-turf-b .zone-row-Turf-A { height: 19vh !important; }
+          .no-turf-b .zone-row-Turf-A td { height: 19vh !important; }
 
           /* Assessment variants — with Turf-B */
           .has-turf-b.has-one-asmt .zone-row-Rack  { height: 20vh !important; }
