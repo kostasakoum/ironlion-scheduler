@@ -1294,8 +1294,9 @@ export default function GymScheduler() {
           table { border-collapse: collapse; width:100% !important; }
           /* Print layout */
           @page { margin: 0.5in; size: landscape; }
-          .print-sheet { min-height: calc(100vh - 1in) !important; }
-          .print-sheet table { width: 100% !important; height: calc(100vh - 2.5in) !important; }
+          .print-sheet { display: block; height: calc(100vh - 1in) !important; }
+          .print-sheet table { width: 100% !important; height: calc(100vh - 1.8in) !important; border-collapse: collapse !important; }
+          .print-sheet tbody { height: 100% !important; display: table-row-group !important; }
 
           /* Zone-specific print heights */
           .zone-row td:first-child { vertical-align: middle !important; }
@@ -1305,54 +1306,33 @@ export default function GymScheduler() {
           .no-turf-b .zone-row-Turf-B td { height: 0 !important; padding: 0 !important; border: none !important; overflow: hidden !important; font-size: 0 !important; }
 
           /* With Turf-B visible: Rack > Back > Turf-A > Turf-B */
-          .has-turf-b .zone-row-Rack  { height: 37vh !important; }
-          .has-turf-b .zone-row-Rack td { height: 37vh !important; }
-          .has-turf-b .zone-row-Back  { height: 33vh !important; }
-          .has-turf-b .zone-row-Back td { height: 33vh !important; }
-          .has-turf-b .zone-row-Turf-A { height: 16vh !important; }
-          .has-turf-b .zone-row-Turf-A td { height: 16vh !important; }
-          .has-turf-b .zone-row-Turf-B { height: 8vh !important; }
-          .has-turf-b .zone-row-Turf-B td { height: 8vh !important; }
+          .has-turf-b .zone-row-Rack  { height: 37% !important; }
+          .has-turf-b .zone-row-Back  { height: 33% !important; }
+          .has-turf-b .zone-row-Turf-A { height: 22% !important; }
+          .has-turf-b .zone-row-Turf-B { height: 8% !important; }
 
           /* Without Turf-B: Rack > Back > Turf-A, fill the page */
-          .no-turf-b .zone-row-Rack  { height: 40vh !important; }
-          .no-turf-b .zone-row-Rack td { height: 40vh !important; }
-          .no-turf-b .zone-row-Back  { height: 35vh !important; }
-          .no-turf-b .zone-row-Back td { height: 35vh !important; }
-          .no-turf-b .zone-row-Turf-A { height: 19vh !important; }
-          .no-turf-b .zone-row-Turf-A td { height: 19vh !important; }
+          .no-turf-b .zone-row-Rack  { height: 42% !important; }
+          .no-turf-b .zone-row-Back  { height: 35% !important; }
+          .no-turf-b .zone-row-Turf-A { height: 23% !important; }
 
           /* Assessment variants — with Turf-B */
           .has-turf-b.has-one-asmt .zone-row-Rack  { height: 20vh !important; }
-          .has-turf-b.has-one-asmt .zone-row-Rack td { height: 20vh !important; }
           .has-turf-b.has-one-asmt .zone-row-Back  { height: 18vh !important; }
-          .has-turf-b.has-one-asmt .zone-row-Back td { height: 18vh !important; }
           .has-turf-b.has-one-asmt .zone-row-Turf-A { height: 14vh !important; }
-          .has-turf-b.has-one-asmt .zone-row-Turf-A td { height: 14vh !important; }
           .has-turf-b.has-one-asmt .zone-row-Turf-B { height: 8vh !important; }
-          .has-turf-b.has-one-asmt .zone-row-Turf-B td { height: 8vh !important; }
           .has-turf-b.has-two-asmt .zone-row-Rack  { height: 19vh !important; }
-          .has-turf-b.has-two-asmt .zone-row-Rack td { height: 19vh !important; }
           .has-turf-b.has-two-asmt .zone-row-Back  { height: 17vh !important; }
-          .has-turf-b.has-two-asmt .zone-row-Back td { height: 17vh !important; }
           .has-turf-b.has-two-asmt .zone-row-Turf-A { height: 13vh !important; }
-          .has-turf-b.has-two-asmt .zone-row-Turf-A td { height: 13vh !important; }
           .has-turf-b.has-two-asmt .zone-row-Turf-B { height: 7vh !important; }
-          .has-turf-b.has-two-asmt .zone-row-Turf-B td { height: 7vh !important; }
 
           /* Assessment variants — without Turf-B */
           .no-turf-b.has-one-asmt .zone-row-Rack  { height: 25vh !important; }
-          .no-turf-b.has-one-asmt .zone-row-Rack td { height: 25vh !important; }
           .no-turf-b.has-one-asmt .zone-row-Back  { height: 23vh !important; }
-          .no-turf-b.has-one-asmt .zone-row-Back td { height: 23vh !important; }
           .no-turf-b.has-one-asmt .zone-row-Turf-A { height: 17vh !important; }
-          .no-turf-b.has-one-asmt .zone-row-Turf-A td { height: 17vh !important; }
           .no-turf-b.has-two-asmt .zone-row-Rack  { height: 23vh !important; }
-          .no-turf-b.has-two-asmt .zone-row-Rack td { height: 23vh !important; }
           .no-turf-b.has-two-asmt .zone-row-Back  { height: 21vh !important; }
-          .no-turf-b.has-two-asmt .zone-row-Back td { height: 21vh !important; }
           .no-turf-b.has-two-asmt .zone-row-Turf-A { height: 15vh !important; }
-          .no-turf-b.has-two-asmt .zone-row-Turf-A td { height: 15vh !important; }
         }
       `}</style>
 
