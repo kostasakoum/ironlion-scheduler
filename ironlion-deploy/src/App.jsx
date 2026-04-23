@@ -1302,7 +1302,7 @@ export default function GymScheduler() {
           .zone-row td:first-child { vertical-align: middle !important; }
           .zone-row td:not(:first-child) { vertical-align: top !important; }
           /* Prevent coach name bar from wrapping and causing uneven row heights */
-          .zone-row td .coach-name { font-size: 14px !important; }
+          .zone-row td .coach-name { font-size: 15px !important; }
           .zone-row td div[style*="zoneHeader"] { flex-wrap: nowrap !important; overflow: hidden !important; }
           /* Collapse Turf-B row on print when it has no content — use height:0 not display:none to preserve rowspan */
           .no-turf-b .zone-row-Turf-B { height: 0 !important; overflow: hidden !important; border: none !important; }
@@ -1840,7 +1840,7 @@ export default function GymScheduler() {
                   return [turfBClass, asmtClass].filter(Boolean).join(" ");
                 })()}>
                 <colgroup>
-                  <col style={{ width:72 }} />
+                  <col style={{ width:52 }} />
                   {cfg.hours.map(h => <col key={h} />)}
                 </colgroup>
                 <thead>
