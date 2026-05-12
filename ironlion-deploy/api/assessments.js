@@ -37,8 +37,6 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: "Failed to get access token", details: tokenData });
     }
 
-    // Calendar configs: dedicated assessments calendar (no filter needed),
-    // main calendar searched with both known assessment event title patterns
     const calendarConfigs = [
       { id: "ddd1u1g5ibth6hqtc8l6k5g1oo@group.calendar.google.com", queries: [null] },
       { id: "ironlionstrong@gmail.com", queries: ["Iron Lion Movement Screen", "Iron Lion Events"] },
@@ -70,7 +68,8 @@ module.exports = async function handler(req, res) {
 
         for (const event of (eventsData.items || [])) {
           if (!event.start?.dateTime) continue;
-          if (seenEventIds.has(event.id)) continue; // deduplicate across queries
+          if (event.status === "cancelled") continue; // skip cancelled/rescheduled events
+          if (seenEventIds.has(event.id)) continue;
           seenEventIds.add(event.id);
 
           const dtStr = event.start.dateTime;
