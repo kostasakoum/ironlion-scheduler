@@ -1350,7 +1350,7 @@ export default function GymScheduler() {
             {light ? "☾ Dark" : "☀ Light"}
           </button>
           {schedule && <button onClick={() => window.print()} style={{ border:"none", background:"#1a1a1a", color:"#fff", padding:"5px 14px", cursor:"pointer", fontFamily:"inherit", fontSize:11, borderRadius:3, fontWeight:500 }}>⎙ Print</button>}
-          {schedule && <button onClick={() => { setSchedule(null); setEntries(null); }} style={{ border:`1px solid ${t.border}`, background:t.surface, color:t.muted, padding:"4px 12px", cursor:"pointer", fontFamily:"inherit", fontSize:11, borderRadius:3 }}>↩ New file</button>}
+          {schedule && <button onClick={() => {   setSchedule(null);   setEntries(null);   fetch("/api/assessments")     .then(r => r.ok ? r.json() : {})     .then(data => { calendarDataRef.current = data; })     .catch(() => {}); }} style={{ border:`1px solid ${t.border}`, background:t.surface, color:t.muted, padding:"4px 12px", cursor:"pointer", fontFamily:"inherit", fontSize:11, borderRadius:3 }}>↩ New file</button>}
         </div>
       </div>
 
