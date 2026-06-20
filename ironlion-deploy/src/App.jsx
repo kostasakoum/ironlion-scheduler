@@ -257,9 +257,9 @@ const DAY_CONFIG = {
     },
     zoneLayout: {
       8:  { Rack:["Kostas"], "Turf-A":["Andrew"], "Turf-B":[], Back:[] },
-      9:  { Rack:["Kostas","Elijah"], "Turf-A":["Hayley"], "Turf-B":[], Back:["Andrew"] },
+      9:  { Rack:["Kostas","Elijah"], "Turf-A":[], "Turf-B":["Hayley"], Back:["Andrew"] },
       10: { Rack:["Kostas","Elijah"], "Turf-A":["Andrew"], "Turf-B":[], Back:["Hayley"] },
-      11: { Rack:["Kostas","Elijah"], "Turf-A":["Hayley"], "Turf-B":[], Back:["Andrew"] },
+      11: { Rack:["Kostas","Elijah"], "Turf-A":[], "Turf-B":["Hayley"], Back:["Andrew"] },
       12: { Rack:["Elijah","Andrew"], "Turf-A":["Hayley"], "Turf-B":[], Back:[] },
     },
     foundations: { 10:"Andrew" },
@@ -1694,6 +1694,15 @@ export default function GymScheduler() {
               }
               setCoachOverrides(prev => ({ ...prev, [hour]: newCoachOverride }));
 
+              // If this coach is running Inferno or Bodies in Motion this hour,
+              // move their class label along with them to the new zone
+              const cfgForClass = DAY_CONFIG[day];
+              const hourInfernoCoach = cfgForClass?.inferno?.[hour];
+              const hourBodiesCoach = cfgForClass?.bodiesInMotion?.[hour];
+              if (coachName === hourInfernoCoach || coachName === hourBodiesCoach) {
+                setClassLabelZone(prev => ({ ...prev, [hour]: { ...(prev[hour] || {}), [coachName]: toZone } }));
+              }
+
               // Build flat zone->coachName[] map
               const newLayout = {};
               ZONES.forEach(z => {
@@ -1763,14 +1772,14 @@ export default function GymScheduler() {
 
             // Move a member from one zone to another within the same hour
             const moveItem = (hour, fromZone, toZone, item) => {
-              // If this is a 1-on-1 member, remove from oneOnOnes and pin to overrides
+              // If this is a 1-on-1 member, hide the slot (keep coach excluded from floor) and pin to overrides
               if (item.isOneOnOne) {
                 const idx = item._ooIdx;
                 const coach = item._ooCoach;
                 setOneOnOnes(prev => {
                   const arr = [...(Array.isArray(prev[hour]) ? prev[hour] : [])];
-                  arr.splice(idx, 1);
-                  return { ...prev, [hour]: arr.length ? arr : undefined };
+                  if (arr[idx]) arr[idx] = { ...arr[idx], hidden: true };
+                  return { ...prev, [hour]: arr };
                 });
                 setOverrides(prev => {
                   const next = { ...prev, [hour]: { ...prev[hour] } };
@@ -2343,13 +2352,14 @@ export default function GymScheduler() {
                                   ))}
 
                                   {/* 1-on-1 members — shown in Back zone */}
-                                  {zone === "Back" && (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member).map((slot, si) => {
+                                  {zone === "Back" && (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden).map((slot) => {
                                     const coachColor = COACH_COLORS[slot.coach] || t.muted;
+                                    const realIdx = (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).indexOf(slot);
                                     return (
-                                      <div key={`oo-${si}`}
+                                      <div key={`oo-${realIdx}`}
                                         draggable
                                         onDragStart={(e) => {
-                                          e.dataTransfer.setData("text/plain", JSON.stringify({ type:"member", hour, fromZone: zone, item: { display: slot.member, isOneOnOne: true, _ooIdx: si, _ooCoach: slot.coach } }));
+                                          e.dataTransfer.setData("text/plain", JSON.stringify({ type:"member", hour, fromZone: zone, item: { display: slot.member, isOneOnOne: true, _ooIdx: realIdx, _ooCoach: slot.coach } }));
                                           e.currentTarget.style.opacity = "0.4";
                                         }}
                                         onDragEnd={(e) => { e.currentTarget.style.opacity = "1"; }}
@@ -2529,9 +2539,9 @@ export default function GymScheduler() {
                                   return { ...prev, [hour]: arr };
                                 });
                                 // When coach is locked in, redistribute their members away from floor
+                                // — but only if no other active coach remains in that zone
                                 if (patch.coachLocked && patch.coach && entries) {
                                   const ooCoach = patch.coach;
-                                  // Rebuild overrides without the 1on1 coach in any zone
                                   setOverrides(prev => {
                                     const next = { ...prev, [hour]: { ...prev[hour] } };
                                     ZONES.forEach(z => {
@@ -2540,19 +2550,30 @@ export default function GymScheduler() {
                                         next[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
                                       }
                                     });
-                                    // Move members that were with the 1on1 coach to the best remaining zone
-                                    const ooZone = ZONES.find(z => (next[hour][z]||[]).length > 0 &&
+                                    const ooZone = ZONES.find(z =>
                                       schedule[hour]?.zoneResult[z]?.coaches?.some(s => s.coach === ooCoach));
                                     if (ooZone) {
-                                      const displaced = (next[hour][ooZone]||[]).filter(m => !m.isFoundations && !m.isOpenGym && !m.isOneOnOne);
-                                      if (displaced.length > 0) {
-                                        // Find best zone to redistribute to (not the 1on1 zone)
+                                      const zoneMembers = next[hour][ooZone] || [];
+                                      const semiMembers = zoneMembers.filter(m => !m.isFoundations && !m.isOpenGym && !m.isOneOnOne);
+                                      const keepMembers = zoneMembers.filter(m => m.isFoundations || m.isOpenGym || m.isOneOnOne);
+
+                                      // Other active (non-busy, non-1on1) coaches still in this zone
+                                      const lockedOneOnOneCoaches = (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : [])
+                                        .filter(s => s.coachLocked && s.coach).map(s => s.coach);
+                                      const otherCoachesInZone = (schedule[hour]?.zoneResult[ooZone]?.coaches || [])
+                                        .filter(s => !s.busy && s.coach !== ooCoach && !lockedOneOnOneCoaches.includes(s.coach));
+
+                                      if (otherCoachesInZone.length > 0) {
+                                        // Another coach is still here — members simply stay with them
+                                        next[hour][ooZone] = zoneMembers;
+                                      } else if (semiMembers.length > 0) {
+                                        // No other coach left in this zone — relocate members elsewhere
                                         const targetZone = ZONES.find(z => z !== ooZone &&
                                           schedule[hour]?.zoneResult[z]?.coaches?.some(s => !s.busy) &&
                                           !(schedule[hour]?.zoneResult[z]?.openGym));
                                         if (targetZone) {
-                                          next[hour][ooZone] = (next[hour][ooZone]||[]).filter(m => m.isFoundations || m.isOpenGym || m.isOneOnOne);
-                                          next[hour][targetZone] = [...(next[hour][targetZone]||[]), ...displaced];
+                                          next[hour][ooZone] = keepMembers;
+                                          next[hour][targetZone] = [...(next[hour][targetZone]||[]), ...semiMembers];
                                         }
                                       }
                                     }
