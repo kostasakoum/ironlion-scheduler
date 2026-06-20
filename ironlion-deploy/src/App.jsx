@@ -653,8 +653,21 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // If foundations coach is not Chris C and <=2 foundations members, move to Turf-B
   // Skip if foundationsZoneOverride explicitly handles this hour
   // Skip moving to Turf-B if an assessment is active there — keep foundations coach on Turf-A instead
-  const foundCoachOnTurf = foundCoach && foundCoach !== "Chris C" && !cfg.foundationsZoneOverride?.[hour];
-  if (foundCoachOnTurf && foundations.length > 0 && foundations.length <= 2 && !assessmentActive) {
+  const isAMDay = dayName.endsWith("AM");
+  const foundCoachValid = foundCoach && foundCoach !== "Chris C";
+  // Weekday AM rule: 2 or fewer foundations members ALWAYS go to Turf-B — even on hours
+  // that have a foundationsZoneOverride (e.g. "always Back"). 3+ members keep all existing logic below.
+  const smallGroupAlwaysTurfB = isAMDay && foundCoachValid && foundations.length > 0 && foundations.length <= 2;
+  const foundCoachOnTurf = foundCoachValid && !cfg.foundationsZoneOverride?.[hour];
+  if (smallGroupAlwaysTurfB && !assessmentActive) {
+    // Weekday AM, <=2 members: always Turf-B, regardless of zone override
+    ZONES.forEach(z => { layout[z] = (layout[z]||[]).filter(c => c !== foundCoach); });
+    layout["Turf-B"] = [foundCoach];
+  } else if (smallGroupAlwaysTurfB && assessmentActive) {
+    // Turf-B is taken by an assessment — keep foundations coach on Turf-A
+    ZONES.forEach(z => { layout[z] = (layout[z]||[]).filter(c => c !== foundCoach); });
+    layout["Turf-A"] = [foundCoach, ...(layout["Turf-A"]||[])];
+  } else if (foundCoachOnTurf && foundations.length > 0 && foundations.length <= 2 && !assessmentActive) {
     // <=2 members: move to Turf-B (only when Turf-B isn't occupied by an assessment)
     ZONES.forEach(z => { layout[z] = (layout[z]||[]).filter(c => c !== foundCoach); });
     layout["Turf-B"] = [foundCoach];
@@ -848,6 +861,11 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       if (isBusy && c === foundCoach) {
         const coachIsOnTurf = (layout["Turf-A"]||[]).includes(c);
         let foundZone;
+        const isAMDayRender = dayName.endsWith("AM");
+        // Weekday AM rule takes priority: <=2 members always Turf-B (or Turf-A if assessment owns Turf-B)
+        if (isAMDayRender && foundations.length > 0 && foundations.length <= 2) {
+          foundZone = assessmentActive ? "Turf-A" : "Turf-B";
+        } else {
         // Check for explicit zone override first
         const foundZoneOverride = cfg.foundationsZoneOverride?.[hour];
         if (foundZoneOverride) {
@@ -868,6 +886,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
           foundZone = (!assessmentActive && foundations.length <= 2) ? "Turf-B" : "Back";
         } else {
           foundZone = ZONES.find(zz => (layout[zz]||[]).includes(c)) || z;
+        }
         }
         if (foundZone === z) {
           foundItems = foundations.map(m => ({
