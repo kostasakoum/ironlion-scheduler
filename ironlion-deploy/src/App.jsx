@@ -1,6 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 
-const MEMBERS_FALLBACK = [{"firstName":"Vivian","lastName":"Mavromoustakos","coach":"Chris C"},{"firstName":"Taso","lastName":"Vassiliou","coach":"Chris C"},{"firstName":"Miranda","lastName":"Fischer","coach":"Chris C"},{"firstName":"Elissa","lastName":"DeBruyn","coach":"Andrew"},{"firstName":"Parsa","lastName":"Sharifi","coach":"Kostas"},{"firstName":"Jasmine","lastName":"Carchi","coach":"Hayley"},{"firstName":"Mark","lastName":"Puglia","coach":"Andrew"},{"firstName":"Chris","lastName":"Militello","coach":"Kostas"},{"firstName":"Gianfranco","lastName":"Salamone","coach":"Andrew"},{"firstName":"Ava","lastName":"Ghiotti","coach":"Chris C"},{"firstName":"Dena","lastName":"Boutsikakis","coach":"Hayley"},{"firstName":"Emma","lastName":"Tabenkin","coach":"Hayley"},{"firstName":"Cindy","lastName":"Lee","coach":"Hayley"},{"firstName":"Timothy","lastName":"Lau","coach":"Kostas"},{"firstName":"Matthew","lastName":"Taylee","coach":"Troy"},{"firstName":"Martha","lastName":"Taylee","coach":"Andrew"},{"firstName":"Jan","lastName":"Lei","coach":"Chris C"},{"firstName":"Brendan","lastName":"Deehan","coach":"Chris C"},{"firstName":"Erin","lastName":"Deely","coach":"Chris C"},{"firstName":"Lauren","lastName":"Boudreau","coach":"Kostas"},{"firstName":"Medina","lastName":"Malagic","coach":"Troy"},{"firstName":"Kristina","lastName":"Coriaty","coach":"Andrew"},{"firstName":"Cindy","lastName":"Chen","coach":"Chris C"},{"firstName":"Joann","lastName":"Syrek","coach":"Chris C"},{"firstName":"Bartosz","lastName":"Herdzik","coach":"Kostas"},{"firstName":"Jeffrey","lastName":"Katz","coach":"Chris C"},{"firstName":"Madeline","lastName":"Skoblik","coach":"Kostas"},{"firstName":"Richard","lastName":"Postelnick","coach":"Chris C"},{"firstName":"Deandra","lastName":"Bowersox","coach":"Hayley"},{"firstName":"Krista","lastName":"Kivilo","coach":"Chris C"},{"firstName":"Jessica","lastName":"Lingad","coach":"Chris C"},{"firstName":"Sarah","lastName":"Nakhost-Karimi","coach":"Troy"},{"firstName":"Ayah","lastName":"Issa","coach":"Troy"},{"firstName":"Walter","lastName":"Avaroma","coach":"Troy"},{"firstName":"Dan","lastName":"Marra","coach":"Kostas"},{"firstName":"Cara","lastName":"Gross","coach":"Chris C"},{"firstName":"Marc","lastName":"Gross","coach":"Chris C"},{"firstName":"Matt","lastName":"Neftleberg","coach":"Kostas"},{"firstName":"Michelle","lastName":"Skurnik","coach":"Kostas"},{"firstName":"Luisa","lastName":"Peralta","coach":"Kostas"},{"firstName":"Shelley","lastName":"Criswell","coach":"Chris C"},{"firstName":"Jermaine","lastName":"Barker","coach":"Chris C"},{"firstName":"Mario","lastName":"Giacalone","coach":"Kostas"},{"firstName":"Alex","lastName":"Neumann","coach":"Andrew"},{"firstName":"Adam","lastName":"Eidelsafy","coach":"Kostas"},{"firstName":"Nancy","lastName":"Marin-Rojas","coach":"Hayley"},{"firstName":"Linnea","lastName":"Kickasola","coach":"Chris C"},{"firstName":"Heather","lastName":"Scott","coach":"Andrew"},{"firstName":"Maria","lastName":"Spatola","coach":"Chris C"},{"firstName":"Jill","lastName":"Palmer","coach":"Chris C"},{"firstName":"Adrianne","lastName":"Cordero","coach":"Chris C"},{"firstName":"Allie","lastName":"Yang","coach":"Hayley"},{"firstName":"Kate","lastName":"Hyman","coach":"Hayley"},{"firstName":"Toby","lastName":"Bucsescu","coach":"Kostas"},{"firstName":"Jon","lastName":"Ferrer","coach":"Troy"},{"firstName":"Phat","lastName":"Tran","coach":"Andrew"},{"firstName":"Kody","lastName":"Wescott","coach":"Elijah"},{"firstName":"Lauren","lastName":"Bailey","coach":"Hayley"},{"firstName":"Ana","lastName":"Quintero","coach":"Hayley"},{"firstName":"Zach","lastName":"Horowitz","coach":"Andrew"},{"firstName":"Kelly","lastName":"Goldberg","coach":"Elijah"},{"firstName":"Hosu","lastName":"Kim","coach":"Hayley"},{"firstName":"MICHAEL","lastName":"CORNACCHIA","coach":"Andrew"},{"firstName":"Te","lastName":"Lee","coach":"Troy"},{"firstName":"Eloise","lastName":"Hyman","coach":"Hayley"},{"firstName":"Oscar","lastName":"Solera","coach":"Andrew"},{"firstName":"James","lastName":"Di Maggio","coach":"Andrew"},{"firstName":"Geraldine","lastName":"Kilkelly","coach":"Troy"},{"firstName":"Anne","lastName":"Pfeifenberger","coach":"Chris C"},{"firstName":"Adrianne","lastName":"Lapar","coach":"Chris C"},{"firstName":"Hannah","lastName":"Sommer","coach":"Elijah"},{"firstName":"Jessie","lastName":"Sector","coach":"Chris C"},{"firstName":"Miranda","lastName":"Onnen","coach":"Andrew"},{"firstName":"George","lastName":"Sabini","coach":"Chris C"},{"firstName":"Amal","lastName":"Muzaffar","coach":"Andrew"},{"firstName":"Jeff","lastName":"Krenn","coach":"Andrew"},{"firstName":"Huijo","lastName":"Jeong","coach":"Kostas"},{"firstName":"Nick","lastName":"True Palmer","coach":"Chris C"},{"firstName":"Celeste","lastName":"Scollan","coach":"Troy"},{"firstName":"Teej","lastName":"Matchhar","coach":"Chris C"},{"firstName":"Ryan","lastName":"Parker","coach":"Andrew"},{"firstName":"Sam","lastName":"Swanson","coach":"Chris C"},{"firstName":"Kirthana","lastName":"Chandramouli","coach":"Hayley"},{"firstName":"Katie","lastName":"Wilson","coach":"Chris C"},{"firstName":"Aurora","lastName":"Calzolaio","coach":"Andrew"},{"firstName":"Nicola","lastName":"Spencer-Coye","coach":"Hayley"},{"firstName":"Gino","lastName":"DiBianco","coach":"Chris C"},{"firstName":"Eloisa","lastName":"Mallouras","coach":"Nick"},{"firstName":"Silvia","lastName":"Alvarez","coach":"Chris C"},{"firstName":"Chris","lastName":"Mallouras","coach":"Andrew"},{"firstName":"Margaret","lastName":"Miller Waters","coach":"Andrew"},{"firstName":"Annie","lastName":"Tracy","coach":"Elijah"},{"firstName":"Caroline","lastName":"Greenberg","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Wharton","coach":"Chris C"},{"firstName":"David","lastName":"Di Maggio","coach":"Kostas"},{"firstName":"Robert","lastName":"Prado","coach":"Kostas"},{"firstName":"Frankie","lastName":"Vaccaro","coach":"Andrew"},{"firstName":"Jake","lastName":"Neri","coach":"Andrew"},{"firstName":"Cameron","lastName":"Smith","coach":"Elijah"},{"firstName":"Devon","lastName":"Frye","coach":"Kostas"},{"firstName":"Matt","lastName":"Marrone","coach":"Chris C"},{"firstName":"Madeleine","lastName":"Campbell","coach":"Chris C"},{"firstName":"Lou","lastName":"Pulice","coach":"Troy"},{"firstName":"Elisa","lastName":"Edmondson","coach":"Kostas"},{"firstName":"Cole","lastName":"Mathews","coach":"Troy"},{"firstName":"Natalia","lastName":"Ballester","coach":"Chris C"},{"firstName":"Ethan","lastName":"Jakah","coach":"Chris C"},{"firstName":"Sandra","lastName":"Valminord","coach":"Elijah"},{"firstName":"Rachel","lastName":"Shuman","coach":"Chris C"},{"firstName":"Jennifer","lastName":"Diaz","coach":"Andrew"},{"firstName":"Tasha","lastName":"Naula","coach":"Kostas"},{"firstName":"Amanda","lastName":"Kotey","coach":"Troy"},{"firstName":"Joshua","lastName":"Kraushaar","coach":"Elijah"},{"firstName":"Julie","lastName":"Serigano","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Katz","coach":"Hayley"},{"firstName":"Juliann","lastName":"McEachern","coach":"Troy"},{"firstName":"Lenny","lastName":"Li","coach":"Kostas"},{"firstName":"Niamh","lastName":"McDermott","coach":"Chris C"},{"firstName":"Brian","lastName":"Bove","coach":"Elijah"},{"firstName":"Lena","lastName":"Wu","coach":"Kostas"},{"firstName":"Natasha","lastName":"Klushina","coach":"Andrew"},{"firstName":"Nahiyan","lastName":"Khan","coach":"Elijah"},{"firstName":"Anxhela","lastName":"Mezini","coach":"Elijah"},{"firstName":"Spiro","lastName":"Xenophontos","coach":"Kostas"},{"firstName":"Bella","lastName":"Tabassum","coach":"Nick"},{"firstName":"Paul","lastName":"Gerra","coach":"Elijah"},{"firstName":"Jennifer","lastName":"Riegle","coach":"Hayley"},{"firstName":"Jackie","lastName":"Moran","coach":"Kostas"},{"firstName":"Christopher","lastName":"Austin","coach":"Elijah"},{"firstName":"Andrew","lastName":"Lai","coach":"Chris C"},{"firstName":"Eli","lastName":"Gundry","coach":"Elijah"},{"firstName":"John","lastName":"Adamidis","coach":"Kostas"},{"firstName":"Sarah","lastName":"Cho","coach":"Kostas"},{"firstName":"Marina","lastName":"Tassi","coach":"Nick"},{"firstName":"Nick","lastName":"Fanourgiakis","coach":"Elijah"},{"firstName":"Abegayle","lastName":"Neri","coach":"Andrew"},{"firstName":"Sabrina","lastName":"Zottoli","coach":"Andrew"},{"firstName":"Christina","lastName":"Drossos","coach":"Andrew"},{"firstName":"Iliana","lastName":"Bitis","coach":"Troy"},{"firstName":"Aspa","lastName":"Bitis","coach":"Troy"},{"firstName":"Carolina","lastName":"Parra","coach":"Chris C"},{"firstName":"Michael","lastName":"Bowersox","coach":"Chris C"},{"firstName":"Alex","lastName":"Rodriguez","coach":"Troy"},{"firstName":"Britney","lastName":"Berardelli","coach":"Hayley"},{"firstName":"Katherine","lastName":"Mallouras","coach":"Hayley"},{"firstName":"Na Bin","lastName":"Park","coach":"Elijah"},{"firstName":"Em","lastName":"Pedron","coach":"Hayley"},{"firstName":"Richard","lastName":"Grech","coach":"Troy"},{"firstName":"Andrew","lastName":"Purdy","coach":"Chris C"},{"firstName":"Divina","lastName":"Mogro","coach":"Andrew"},{"firstName":"Fotini","lastName":"Tsividalis","coach":"Kostas"},{"firstName":"Joohee","lastName":"Oh","coach":"Kostas"},{"firstName":"Elena","lastName":"Dimkaros","coach":"Kostas"},{"firstName":"Destiny","lastName":"Reeves","coach":"Kostas"},{"firstName":"Edward","lastName":"Bradin","coach":"Troy"},{"firstName":"Didier","lastName":"Lecorps","coach":"Kostas"},{"firstName":"Kelly","lastName":"Redznak","coach":"Nick"},{"firstName":"Vinesh","lastName":"Vora","coach":"Nick"},{"firstName":"Nicholas","lastName":"Oxenhorn","coach":"Andrew"},{"firstName":"Erika","lastName":"Diaz-Ortiz","coach":"Nick"},{"firstName":"Brandon","lastName":"Vaeth","coach":"Kostas"},{"firstName":"Casey","lastName":"Schreiner","coach":"Nick"},{"firstName":"Katie","lastName":"Talay","coach":"Chris C"},{"firstName":"Kate","lastName":"Grossman","coach":"Nick"},{"firstName":"Samia","lastName":"Kemal","coach":"Nick"},{"firstName":"Kenny","lastName":"Huang","coach":"Kostas"},{"firstName":"Julie","lastName":"Huang","coach":"Kostas"},{"firstName":"Katie","lastName":"Kenfield","coach":"Chris C"},{"firstName":"Elizabeth","lastName":"Yasny","coach":"Andrew"},{"firstName":"Nicolaos","lastName":"Tzoumerkiotis","coach":"Kostas"},{"firstName":"Terrance","lastName":"OConnell","coach":"Nick"},{"firstName":"John","lastName":"Petrucci","coach":"Nick"},{"firstName":"Odhise","lastName":"Paskali","coach":"Kostas"},{"firstName":"Amy","lastName":"Kwak","coach":"Troy"},{"firstName":"Bronwen","lastName":"Wickkiser","coach":"Hayley"},{"firstName":"John","lastName":"LaPolla","coach":"Elijah"},{"firstName":"Michael","lastName":"Allen","coach":"Nick"},{"firstName":"Chris","lastName":"Brizzolara","coach":"Kostas"},{"firstName":"Anna","lastName":"Fitzgerald","coach":"Elijah"},{"firstName":"Gina","lastName":"Antoun","coach":"Troy"},{"firstName":"Sarah","lastName":"Shaddock","coach":"Nick"},{"firstName":"Anna","lastName":"Vassiliou","coach":"Andrew"},{"firstName":"Kenneth","lastName":"Li","coach":"Nick"},{"firstName":"Julianne","lastName":"Burke","coach":"Nick"},{"firstName":"Megan","lastName":"Bradley","coach":"Nick"},{"firstName":"Marysia","lastName":"Klopotowski","coach":"Hayley"},{"firstName":"Zoi","lastName":"Fanourgiakis","coach":"Chris C"},{"firstName":"Adelyn","lastName":"Melnikoff","coach":"Nick"},{"firstName":"Adam","lastName":"Carvalho","coach":"Nick"},{"firstName":"Glen","lastName":"Krugolets","coach":"Nick"},{"firstName":"Lea","lastName":"Karnath","coach":"Nick"},{"firstName":"Nick","lastName":"Arenare","coach":"Elijah"},{"firstName":"Richard","lastName":"Bailey","coach":"Kostas"},{"firstName":"Ritesh","lastName":"Bansal","coach":"Andrew"},{"firstName":"Emanuel","lastName":"Boutsikakis","coach":"Andrew"},{"firstName":"'Cil","lastName":"Brewer","coach":"Chris C"},{"firstName":"Maria","lastName":"Buendia","coach":"Chris C"},{"firstName":"Stephen","lastName":"Caridi","coach":"Chris C"},{"firstName":"Fernando","lastName":"Cicarelli","coach":"Chris C"},{"firstName":"Adam","lastName":"Crane","coach":"Andrew"},{"firstName":"Peter","lastName":"Dellaportas","coach":"Kostas"},{"firstName":"Chrissie","lastName":"Di Bianco","coach":"Chris C"},{"firstName":"Parry","lastName":"Ermogenous","coach":"Chris C"},{"firstName":"Chad","lastName":"Frye","coach":"Andrew"},{"firstName":"Christos","lastName":"Giannopoulos","coach":"Chris C"},{"firstName":"James","lastName":"Granada","coach":"Troy"},{"firstName":"Dennis","lastName":"Hruska","coach":"Hayley"},{"firstName":"Cash","lastName":"Kacarevic","coach":"Kostas"},{"firstName":"Pauline","lastName":"Kakkos","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Lowenherz","coach":"Hayley"},{"firstName":"Michael","lastName":"Mannino","coach":"Chris C"},{"firstName":"Mary","lastName":"Nash","coach":"Chris C"},{"firstName":"Mike","lastName":"Peterson","coach":"Chris C"},{"firstName":"Amy","lastName":"Postelnik","coach":"Andrew"},{"firstName":"Joe","lastName":"Rojas","coach":"Hayley"},{"firstName":"Laurie","lastName":"Scherer","coach":"Troy"},{"firstName":"Edward","lastName":"Taylee","coach":"Troy"},{"firstName":"Karin","lastName":"Venegas","coach":"Hayley"},{"firstName":"Spiredoula","lastName":"Viglis","coach":"Hayley"},{"firstName":"Christina","lastName":"Nickas","coach":"Nick"},{"firstName":"Becky","lastName":"Williams","coach":"Hayley"},{"firstName":"Laura","lastName":"Borg","coach":"Hayley"},{"firstName":"Richard","lastName":"Borg","coach":"Troy"},{"firstName":"Matthew","lastName":"Bonfitto","coach":"Chris C"},{"firstName":"Pio","lastName":"Bonfitto","coach":"Troy"},{"firstName":"Ali","lastName":"Khurman","coach":"Chris C"},{"firstName":"Manolis","lastName":"Tsividakis","coach":"Kostas"},{"firstName":"Monica","lastName":"Hassan","coach":"Andrew"},{"firstName":"Emily","lastName":"Bram","coach":"Nick"},{"firstName":"Daniel","lastName":"Harris","coach":"Elijah"},{"firstName":"David","lastName":"Hernandez","coach":"Troy"},{"firstName":"Jessica","lastName":"Krocker","coach":"Nick"},{"firstName":"Lukas","lastName":"Thorn","coach":"Chris C"},{"firstName":"William","lastName":"Bernstein","coach":"Nick"},{"firstName":"Miranda","lastName":"Manimbo","coach":"Kostas"},{"firstName":"Josh","lastName":"Brewer","coach":"Chris C"},{"firstName":"David","lastName":"Abrukin","coach":"Troy"},{"firstName":"Kate","lastName":"DeMay","coach":"Hayley"},{"firstName":"Alex","lastName":"Perez","coach":"Nick"},{"firstName":"Devin","lastName":"Visslailli","coach":"Chris C"},{"firstName":"Lucilla","lastName":"Pan","coach":"Nick"},{"firstName":"Jennifer","lastName":"Eaker","coach":"Chris C"},{"firstName":"Lorie","lastName":"Grech","coach":"Hayley"},{"firstName":"Savannah","lastName":"Bell","coach":"Hayley"},{"firstName":"Brian","lastName":"Victor","coach":"Elijah"},{"firstName":"Alison","lastName":"Welt","coach":"Nick"},{"firstName":"Kai","lastName":"Farrell","coach":"Hayley"},{"firstName":"Andrew","lastName":"Sheivachman","coach":"Nick"},{"firstName":"Richard","lastName":"Murphy","coach":"Nick"},{"firstName":"Jaime","lastName":"Tejada","coach":"Kostas"},{"firstName":"Eleni","lastName":"Ibrahim","coach":"Chris C"},{"firstName":"Lauren","lastName":"DiGiovanni","coach":"Chris C"},{"firstName":"Nikki","lastName":"Baldauf","coach":"Nick"},{"firstName":"Patricia","lastName":"Gonzalez","coach":"Troy"},{"firstName":"Jayne","lastName":"Deely","coach":"Nick"},{"firstName":"Daniel","lastName":"Pino","coach":"Kostas"},{"firstName":"Michele","lastName":"Quiles","coach":"Elijah"},{"firstName":"Mickey","lastName":"Ruddy","coach":"Nick"},{"firstName":"Sarah","lastName":"Braginsky","coach":"Hayley"},{"firstName":"May","lastName":"Ledner","coach":"Andrew"},{"firstName":"Alexia","lastName":"Devlin","coach":"Nick"},{"firstName":"Ulises","lastName":"Amaya","coach":"Troy"},{"firstName":"Nick","lastName":"Kosarek","coach":"Nick"},{"firstName":"Felipe","lastName":"Machado","coach":"Elijah"},{"firstName":"Boyeon","lastName":"Choi","coach":"Troy"},{"firstName":"Stephen","lastName":"Zelin","coach":"Troy"},{"firstName":"Ryan","lastName":"Kellys","coach":"Nick"},{"firstName":"Rebecca","lastName":"Kivlehan","coach":"Nick"},{"firstName":"Ryann","lastName":"King","coach":"Elijah"},{"firstName":"Spiro","lastName":"Levis","coach":"Chris C"},{"firstName":"Kaitlin","lastName":"Fitzpatrick","coach":"Nick"},{"firstName":"Rajash","lastName":"Puar","coach":"Nick"},{"firstName":"Clare","lastName":"Mandaro","coach":"Elijah"},{"firstName":"Tymel","lastName":"Stewart","coach":"Nick"},{"firstName":"Doreen","lastName":"Dardashtian","coach":"Elijah"},{"firstName":"James","lastName":"Tankersley","coach":"Elijah"},{"firstName":"Maysie","lastName":"Ocera","coach":"Hayley"},{"firstName":"Ali","lastName":"Mcleod","coach":"Andrew"},{"firstName":"Thomas","lastName":"Grimaldi","coach":"Chris C"},{"firstName":"Kate","lastName":"Foran","coach":"Andrew"},{"firstName":"Manolis","lastName":"Grilakis","coach":"Andrew"},{"firstName":"Mairead","lastName":"Kress","coach":"Andrew"},{"firstName":"Dawn","lastName":"Brewer","coach":"Elijah"},{"firstName":"Matt","lastName":"St.Jean","coach":"Kostas"},{"firstName":"Caila","lastName":"Crossan","coach":"Hayley"},{"firstName":"Genevieve","lastName":"Gonzolaz","coach":"Andrew"},{"firstName":"Jennia","lastName":"Iordanou","coach":"Troy"},{"firstName":"Linnea","lastName":"Herman","coach":"Andrew"},{"firstName":"Phoenix","lastName":"Lin","coach":"Chris C"},{"firstName":"Christian","lastName":"Iordanou","coach":"Chris C"},{"firstName":"Leah","lastName":"Ruggiero","coach":"Troy"},{"firstName":"Jessica","lastName":"Daneshvar","coach":"Nick"},{"firstName":"Ian","lastName":"Paulino","coach":"Nick"},{"firstName":"Alba","lastName":"Rajanibala","coach":"Hayley"},{"firstName":"Alexsei","lastName":"Sheih","coach":"Nick"},{"firstName":"Princess","lastName":"Guerrero","coach":"Nick"},{"firstName":"Elizabeth","lastName":"Sia","coach":"Troy"},{"firstName":"Tiffany","lastName":"Do","coach":"Elijah"},{"firstName":"Evangelos","lastName":"Viglis","coach":"Andrew"},{"firstName":"Krista","lastName":"Brenner","coach":"Andrew"},{"firstName":"Markos","lastName":"Viglis","coach":"Kostas"},{"firstName":"Patrick","lastName":"Farran","coach":"Andrew"},{"firstName":"Ali","lastName":"Levin","coach":"Hayley"},{"firstName":"Vanessa","lastName":"Carney","coach":"Nick"},{"firstName":"Meghan","lastName":"Maguire","coach":"Kostas"},{"firstName":"Ken","lastName":"Weinberg","coach":"Troy"},{"firstName":"Pamela","lastName":"Clemens","coach":"Nick"},{"firstName":"Conor","lastName":"Lyman","coach":"Troy"},{"firstName":"Mariah","lastName":"Maher","coach":"Nick"},{"firstName":"Erika","lastName":"Ferrentino","coach":"Chris C"},{"firstName":"Shelly","lastName":"Vance","coach":"Andrew"},{"firstName":"Ian","lastName":"Halbwachs","coach":"Elijah"},{"firstName":"Kristen","lastName":"Leeman","coach":"Troy"},{"firstName":"Yumi","lastName":"Masuda","coach":"Nick"},{"firstName":"Mar","lastName":"Asayan","coach":"Elijah"},{"firstName":"David","lastName":"Goens","coach":"Chris C"},{"firstName":"Odin","lastName":"Zurek","coach":"Nick"},{"firstName":"Eleonore","lastName":"Dumas","coach":"Elijah"},{"firstName":"Daniel","lastName":"Leeman","coach":"Andrew"},{"firstName":"Maria","lastName":"Hara","coach":"Andrew"},{"firstName":"Ketan","lastName":"Patel","coach":"Troy"},{"firstName":"Emily","lastName":"Hartnett","coach":"Hayley"},{"firstName":"Alexandra","lastName":"Gravina","coach":"Troy"},{"firstName":"Ronald","lastName":"Arcentales","coach":"Elijah"},{"firstName":"John","lastName":"Mahramas","coach":"Andrew"},{"firstName":"James","lastName":"Fouhey","coach":"Chris C"},{"firstName":"Valeria","lastName":"Nieves","coach":"Hayley"},{"firstName":"Olivia","lastName":"Bruno","coach":"Nick"},{"firstName":"Jeff","lastName":"Griffin","coach":"Nick"},{"firstName":"Amy","lastName":"Cohen","coach":"Nick"},{"firstName":"David","lastName":"Lechtenberg","coach":"Kostas"},{"firstName":"Peter","lastName":"Grills","coach":"Chris C"},{"firstName":"Katerina","lastName":"Vlitas","coach":"Hayley"},{"firstName":"John","lastName":"Waters","coach":"Andrew"},{"firstName":"Judy","lastName":"Chung","coach":"Hayley"},{"firstName":"Cassie","lastName":"Barrett","coach":"Andrew"},{"firstName":"Henrieke","lastName":"Te Horst-Iordanou","coach":"Hayley"},{"firstName":"Cassidy","lastName":"Hamilton","coach":"Elijah"},{"firstName":"Ben","lastName":"Virgilio","coach":"Kostas"},{"firstName":"Tyler","lastName":"Baldwin","coach":"Chris C"},{"firstName":"Danica","lastName":"Roganovic","coach":"Andrew"},{"firstName":"Mariel","lastName":"Wamsley","coach":"Hayley"},{"firstName":"Deirdre","lastName":"McPartlandt","coach":"Nick"},{"firstName":"Kerry","lastName":"Yang","coach":"Andrew"},{"firstName":"Vicky","lastName":"Tzoumerkiotis","coach":"Hayley"},{"firstName":"Christine","lastName":"Carlsen","coach":"Hayley"}];
+const MEMBERS_FALLBACK = [{"firstName":"Vivian","lastName":"Mavromoustakos","coach":"Chris C"},{"firstName":"Taso","lastName":"Vassiliou","coach":"Chris C"},{"firstName":"Miranda","lastName":"Fischer","coach":"Chris C"},{"firstName":"Elissa","lastName":"DeBruyn","coach":"Andrew"},{"firstName":"Parsa","lastName":"Sharifi","coach":"Kostas"},{"firstName":"Jasmine","lastName":"Carchi","coach":"Hayley"},{"firstName":"Mark","lastName":"Puglia","coach":"Andrew"},{"firstName":"Chris","lastName":"Militello","coach":"Kostas"},{"firstName":"Gianfranco","lastName":"Salamone","coach":"Andrew"},{"firstName":"Ava","lastName":"Ghiotti","coach":"Chris C"},{"firstName":"Dena","lastName":"Boutsikakis","coach":"Hayley"},{"firstName":"Emma","lastName":"Tabenkin","coach":"Hayley"},{"firstName":"Cindy","lastName":"Lee","coach":"Hayley"},{"firstName":"Timothy","lastName":"Lau","coach":"Kostas"},{"firstName":"Matthew","lastName":"Taylee","coach":"Troy"},{"firstName":"Martha","lastName":"Taylee","coach":"Andrew"},{"firstName":"Jan","lastName":"Lei","coach":"Chris C"},{"firstName":"Brendan","lastName":"Deehan","coach":"Chris C"},{"firstName":"Erin","lastName":"Deely","coach":"Chris C"},{"firstName":"Lauren","lastName":"Boudreau","coach":"Kostas"},{"firstName":"Medina","lastName":"Malagic","coach":"Troy"},{"firstName":"Kristina","lastName":"Coriaty","coach":"Andrew"},{"firstName":"Cindy","lastName":"Chen","coach":"Chris C"},{"firstName":"Joann","lastName":"Syrek","coach":"Chris C"},{"firstName":"Bartosz","lastName":"Herdzik","coach":"Kostas"},{"firstName":"Jeffrey","lastName":"Katz","coach":"Chris C"},{"firstName":"Madeline","lastName":"Skoblik","coach":"Kostas"},{"firstName":"Richard","lastName":"Postelnick","coach":"Chris C"},{"firstName":"Deandra","lastName":"Bowersox","coach":"Hayley"},{"firstName":"Krista","lastName":"Kivilo","coach":"Chris C"},{"firstName":"Jessica","lastName":"Lingad","coach":"Chris C"},{"firstName":"Sarah","lastName":"Nakhost-Karimi","coach":"Troy"},{"firstName":"Ayah","lastName":"Issa","coach":"Troy"},{"firstName":"Walter","lastName":"Avaroma","coach":"Troy"},{"firstName":"Dan","lastName":"Marra","coach":"Kostas"},{"firstName":"Cara","lastName":"Gross","coach":"Chris C"},{"firstName":"Marc","lastName":"Gross","coach":"Chris C"},{"firstName":"Matt","lastName":"Neftleberg","coach":"Kostas"},{"firstName":"Michelle","lastName":"Skurnik","coach":"Kostas"},{"firstName":"Luisa","lastName":"Peralta","coach":"Kostas"},{"firstName":"Shelley","lastName":"Criswell","coach":"Chris C"},{"firstName":"Jermaine","lastName":"Barker","coach":"Chris C"},{"firstName":"Mario","lastName":"Giacalone","coach":"Kostas"},{"firstName":"Alex","lastName":"Neumann","coach":"Andrew"},{"firstName":"Adam","lastName":"Eidelsafy","coach":"Kostas"},{"firstName":"Nancy","lastName":"Marin-Rojas","coach":"Hayley"},{"firstName":"Linnea","lastName":"Kickasola","coach":"Chris C"},{"firstName":"Heather","lastName":"Scott","coach":"Andrew"},{"firstName":"Maria","lastName":"Spatola","coach":"Chris C"},{"firstName":"Jill","lastName":"Palmer","coach":"Chris C"},{"firstName":"Adrianne","lastName":"Cordero","coach":"Chris C"},{"firstName":"Allie","lastName":"Yang","coach":"Hayley"},{"firstName":"Kate","lastName":"Hyman","coach":"Hayley"},{"firstName":"Toby","lastName":"Bucsescu","coach":"Kostas"},{"firstName":"Jon","lastName":"Ferrer","coach":"Troy"},{"firstName":"Phat","lastName":"Tran","coach":"Andrew"},{"firstName":"Kody","lastName":"Wescott","coach":"Elijah"},{"firstName":"Lauren","lastName":"Bailey","coach":"Hayley"},{"firstName":"Ana","lastName":"Quintero","coach":"Hayley"},{"firstName":"Zach","lastName":"Horowitz","coach":"Andrew"},{"firstName":"Kelly","lastName":"Goldberg","coach":"Elijah"},{"firstName":"Hosu","lastName":"Kim","coach":"Hayley"},{"firstName":"MICHAEL","lastName":"CORNACCHIA","coach":"Andrew"},{"firstName":"Te","lastName":"Lee","coach":"Troy"},{"firstName":"Eloise","lastName":"Hyman","coach":"Hayley"},{"firstName":"Oscar","lastName":"Solera","coach":"Andrew"},{"firstName":"James","lastName":"Di Maggio","coach":"Andrew"},{"firstName":"Geraldine","lastName":"Kilkelly","coach":"Troy"},{"firstName":"Anne","lastName":"Pfeifenberger","coach":"Chris C"},{"firstName":"Adrianne","lastName":"Lapar","coach":"Chris C"},{"firstName":"Hannah","lastName":"Sommer","coach":"Elijah"},{"firstName":"Jessie","lastName":"Sector","coach":"Chris C"},{"firstName":"Miranda","lastName":"Onnen","coach":"Andrew"},{"firstName":"George","lastName":"Sabini","coach":"Chris C"},{"firstName":"Amal","lastName":"Muzaffar","coach":"Andrew"},{"firstName":"Jeff","lastName":"Krenn","coach":"Andrew"},{"firstName":"Huijo","lastName":"Jeong","coach":"Kostas"},{"firstName":"Nick","lastName":"True Palmer","coach":"Chris C"},{"firstName":"Celeste","lastName":"Scollan","coach":"Troy"},{"firstName":"Teej","lastName":"Matchhar","coach":"Chris C"},{"firstName":"Ryan","lastName":"Parker","coach":"Andrew"},{"firstName":"Sam","lastName":"Swanson","coach":"Chris C"},{"firstName":"Kirthana","lastName":"Chandramouli","coach":"Hayley"},{"firstName":"Katie","lastName":"Wilson","coach":"Chris C"},{"firstName":"Aurora","lastName":"Calzolaio","coach":"Andrew"},{"firstName":"Nicola","lastName":"Spencer-Coye","coach":"Hayley"},{"firstName":"Gino","lastName":"DiBianco","coach":"Chris C"},{"firstName":"Eloisa","lastName":"Mallouras","coach":"Nick"},{"firstName":"Silvia","lastName":"Alvarez","coach":"Chris C"},{"firstName":"Chris","lastName":"Mallouras","coach":"Andrew"},{"firstName":"Margaret","lastName":"Miller Waters","coach":"Andrew"},{"firstName":"Annie","lastName":"Tracy","coach":"Elijah"},{"firstName":"Caroline","lastName":"Greenberg","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Wharton","coach":"Chris C"},{"firstName":"David","lastName":"Di Maggio","coach":"Kostas"},{"firstName":"Robert","lastName":"Prado","coach":"Kostas"},{"firstName":"Frankie","lastName":"Vaccaro","coach":"Andrew"},{"firstName":"Jake","lastName":"Neri","coach":"Andrew"},{"firstName":"Cameron","lastName":"Smith","coach":"Elijah"},{"firstName":"Devon","lastName":"Frye","coach":"Kostas"},{"firstName":"Matt","lastName":"Marrone","coach":"Chris C"},{"firstName":"Madeleine","lastName":"Campbell","coach":"Chris C"},{"firstName":"Lou","lastName":"Pulice","coach":"Troy"},{"firstName":"Elisa","lastName":"Edmondson","coach":"Kostas"},{"firstName":"Cole","lastName":"Mathews","coach":"Troy"},{"firstName":"Natalia","lastName":"Ballester","coach":"Chris C"},{"firstName":"Ethan","lastName":"Jakah","coach":"Chris C"},{"firstName":"Sandra","lastName":"Valminord","coach":"Elijah"},{"firstName":"Rachel","lastName":"Shuman","coach":"Chris C"},{"firstName":"Jennifer","lastName":"Diaz","coach":"Andrew"},{"firstName":"Tasha","lastName":"Naula","coach":"Kostas"},{"firstName":"Amanda","lastName":"Kotey","coach":"Troy"},{"firstName":"Joshua","lastName":"Kraushaar","coach":"Elijah"},{"firstName":"Julie","lastName":"Serigano","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Katz","coach":"Hayley"},{"firstName":"Juliann","lastName":"McEachern","coach":"Troy"},{"firstName":"Lenny","lastName":"Li","coach":"Kostas"},{"firstName":"Niamh","lastName":"McDermott","coach":"Chris C"},{"firstName":"Brian","lastName":"Bove","coach":"Elijah"},{"firstName":"Lena","lastName":"Wu","coach":"Kostas"},{"firstName":"Natasha","lastName":"Klushina","coach":"Andrew"},{"firstName":"Nahiyan","lastName":"Khan","coach":"Elijah"},{"firstName":"Anxhela","lastName":"Mezini","coach":"Elijah"},{"firstName":"Spiro","lastName":"Xenophontos","coach":"Kostas"},{"firstName":"Bella","lastName":"Tabassum","coach":"Nick"},{"firstName":"Paul","lastName":"Gerra","coach":"Elijah"},{"firstName":"Jennifer","lastName":"Riegle","coach":"Hayley"},{"firstName":"Jackie","lastName":"Moran","coach":"Kostas"},{"firstName":"Christopher","lastName":"Austin","coach":"Elijah"},{"firstName":"Andrew","lastName":"Lai","coach":"Chris C"},{"firstName":"Eli","lastName":"Gundry","coach":"Elijah"},{"firstName":"John","lastName":"Adamidis","coach":"Kostas"},{"firstName":"Sarah","lastName":"Cho","coach":"Kostas"},{"firstName":"Marina","lastName":"Tassi","coach":"Nick"},{"firstName":"Nick","lastName":"Fanourgiakis","coach":"Elijah"},{"firstName":"Abegayle","lastName":"Neri","coach":"Andrew"},{"firstName":"Sabrina","lastName":"Zottoli","coach":"Andrew"},{"firstName":"Christina","lastName":"Drossos","coach":"Andrew"},{"firstName":"Iliana","lastName":"Bitis","coach":"Troy"},{"firstName":"Aspa","lastName":"Bitis","coach":"Troy"},{"firstName":"Carolina","lastName":"Parra","coach":"Chris C"},{"firstName":"Michael","lastName":"Bowersox","coach":"Chris C"},{"firstName":"Alex","lastName":"Rodriguez","coach":"Troy"},{"firstName":"Britney","lastName":"Berardelli","coach":"Hayley"},{"firstName":"Katherine","lastName":"Mallouras","coach":"Hayley"},{"firstName":"Na Bin","lastName":"Park","coach":"Elijah"},{"firstName":"Em","lastName":"Pedron","coach":"Hayley"},{"firstName":"Richard","lastName":"Grech","coach":"Troy"},{"firstName":"Andrew","lastName":"Purdy","coach":"Chris C"},{"firstName":"Divina","lastName":"Mogro","coach":"Andrew"},{"firstName":"Fotini","lastName":"Tsividalis","coach":"Kostas"},{"firstName":"Joohee","lastName":"Oh","coach":"Kostas"},{"firstName":"Elena","lastName":"Dimkaros","coach":"Kostas"},{"firstName":"Destiny","lastName":"Reeves","coach":"Kostas"},{"firstName":"Edward","lastName":"Bradin","coach":"Troy"},{"firstName":"Didier","lastName":"Lecorps","coach":"Kostas"},{"firstName":"Kelly","lastName":"Redznak","coach":"Nick"},{"firstName":"Vinesh","lastName":"Vora","coach":"Nick"},{"firstName":"Nicholas","lastName":"Oxenhorn","coach":"Andrew"},{"firstName":"Erika","lastName":"Diaz-Ortiz","coach":"Nick"},{"firstName":"Brandon","lastName":"Vaeth","coach":"Kostas"},{"firstName":"Casey","lastName":"Schreiner","coach":"Nick"},{"firstName":"Katie","lastName":"Talay","coach":"Chris C"},{"firstName":"Kate","lastName":"Grossman","coach":"Nick"},{"firstName":"Samia","lastName":"Kemal","coach":"Nick"},{"firstName":"Kenny","lastName":"Huang","coach":"Kostas"},{"firstName":"Julie","lastName":"Huang","coach":"Kostas"},{"firstName":"Katie","lastName":"Kenfield","coach":"Chris C"},{"firstName":"Elizabeth","lastName":"Yasny","coach":"Andrew"},{"firstName":"Nicolaos","lastName":"Tzoumerkiotis","coach":"Kostas"},{"firstName":"Terrance","lastName":"OConnell","coach":"Nick"},{"firstName":"John","lastName":"Petrucci","coach":"Nick"},{"firstName":"Odhise","lastName":"Paskali","coach":"Kostas"},{"firstName":"Amy","lastName":"Kwak","coach":"Troy"},{"firstName":"Bronwen","lastName":"Wickkiser","coach":"Hayley"},{"firstName":"John","lastName":"LaPolla","coach":"Elijah"},{"firstName":"Michael","lastName":"Allen","coach":"Nick"},{"firstName":"Chris","lastName":"Brizzolara","coach":"Kostas"},{"firstName":"Anna","lastName":"Fitzgerald","coach":"Elijah"},{"firstName":"Gina","lastName":"Antoun","coach":"Troy"},{"firstName":"Sarah","lastName":"Shaddock","coach":"Nick"},{"firstName":"Anna","lastName":"Vassiliou","coach":"Andrew"},{"firstName":"Kenneth","lastName":"Li","coach":"Nick"},{"firstName":"Julianne","lastName":"Burke","coach":"Nick"},{"firstName":"Megan","lastName":"Bradley","coach":"Nick"},{"firstName":"Marysia","lastName":"Klopotowski","coach":"Hayley"},{"firstName":"Zoi","lastName":"Fanourgiakis","coach":"Chris C"},{"firstName":"Adelyn","lastName":"Melnikoff","coach":"Nick"},{"firstName":"Adam","lastName":"Carvalho","coach":"Nick"},{"firstName":"Glen","lastName":"Krugolets","coach":"Nick"},{"firstName":"Lea","lastName":"Karnath","coach":"Nick"},{"firstName":"Nick","lastName":"Arenare","coach":"Elijah"},{"firstName":"Richard","lastName":"Bailey","coach":"Kostas"},{"firstName":"Ritesh","lastName":"Bansal","coach":"Andrew"},{"firstName":"Emanuel","lastName":"Boutsikakis","coach":"Andrew"},{"firstName":"'Cil","lastName":"Brewer","coach":"Chris C"},{"firstName":"Maria","lastName":"Buendia","coach":"Chris C"},{"firstName":"Stephen","lastName":"Caridi","coach":"Chris C"},{"firstName":"Fernando","lastName":"Cicarelli","coach":"Chris C"},{"firstName":"Adam","lastName":"Crane","coach":"Andrew"},{"firstName":"Peter","lastName":"Dellaportas","coach":"Kostas"},{"firstName":"Chrissie","lastName":"Di Bianco","coach":"Chris C"},{"firstName":"Parry","lastName":"Ermogenous","coach":"Chris C"},{"firstName":"Chad","lastName":"Frye","coach":"Andrew"},{"firstName":"Christos","lastName":"Giannopoulos","coach":"Chris C"},{"firstName":"James","lastName":"Granada","coach":"Troy"},{"firstName":"Dennis","lastName":"Hruska","coach":"Hayley"},{"firstName":"Cash","lastName":"Kacarevic","coach":"Kostas"},{"firstName":"Pauline","lastName":"Kakkos","coach":"Hayley"},{"firstName":"Jennifer","lastName":"Lowenherz","coach":"Hayley"},{"firstName":"Michael","lastName":"Mannino","coach":"Chris C"},{"firstName":"Mary","lastName":"Nash","coach":"Chris C"},{"firstName":"Mike","lastName":"Peterson","coach":"Chris C"},{"firstName":"Amy","lastName":"Postelnik","coach":"Andrew"},{"firstName":"Joe","lastName":"Rojas","coach":"Hayley"},{"firstName":"Laurie","lastName":"Scherer","coach":"Troy"},{"firstName":"Edward","lastName":"Taylee","coach":"Troy"},{"firstName":"Karin","lastName":"Venegas","coach":"Hayley"},{"firstName":"Spiredoula","lastName":"Viglis","coach":"Hayley"},{"firstName":"Christina","lastName":"Nickas","coach":"Nick"},{"firstName":"Becky","lastName":"Williams","coach":"Hayley"},{"firstName":"Laura","lastName":"Borg","coach":"Hayley"},{"firstName":"Richard","lastName":"Borg","coach":"Troy"},{"firstName":"Matthew","lastName":"Bonfitto","coach":"Chris C"},{"firstName":"Pio","lastName":"Bonfitto","coach":"Troy"},{"firstName":"Ali","lastName":"Khurman","coach":"Chris C"},{"firstName":"Manolis","lastName":"Tsividakis","coach":"Kostas"},{"firstName":"Monica","lastName":"Hassan","coach":"Andrew"},{"firstName":"Emily","lastName":"Bram","coach":"Nick"},{"firstName":"Daniel","lastName":"Harris","coach":"Elijah"},{"firstName":"David","lastName":"Hernandez","coach":"Troy"},{"firstName":"Jessica","lastName":"Krocker","coach":"Nick"},{"firstName":"Lukas","lastName":"Thorn","coach":"Chris C"},{"firstName":"William","lastName":"Bernstein","coach":"Nick"},{"firstName":"Miranda","lastName":"Manimbo","coach":"Kostas"},{"firstName":"Josh","lastName":"Brewer","coach":"Chris C"},{"firstName":"David","lastName":"Abrukin","coach":"Troy"},{"firstName":"Kate","lastName":"DeMay","coach":"Hayley"},{"firstName":"Alex","lastName":"Perez","coach":"Nick"},{"firstName":"Devin","lastName":"Visslailli","coach":"Chris C"},{"firstName":"Lucilla","lastName":"Pan","coach":"Nick"},{"firstName":"Jennifer","lastName":"Eaker","coach":"Chris C"},{"firstName":"Lorie","lastName":"Grech","coach":"Hayley"},{"firstName":"Savannah","lastName":"Bell","coach":"Hayley"},{"firstName":"Brian","lastName":"Victor","coach":"Elijah"},{"firstName":"Alison","lastName":"Welt","coach":"Nick"},{"firstName":"Kai","lastName":"Farrell","coach":"Hayley"},{"firstName":"Andrew","lastName":"Sheivachman","coach":"Nick"},{"firstName":"Richard","lastName":"Murphy","coach":"Nick"},{"firstName":"Jaime","lastName":"Tejada","coach":"Kostas"},{"firstName":"Eleni","lastName":"Ibrahim","coach":"Chris C"},{"firstName":"Lauren","lastName":"DiGiovanni","coach":"Chris C"},{"firstName":"Nikki","lastName":"Baldauf","coach":"Nick"},{"firstName":"Patricia","lastName":"Gonzalez","coach":"Troy"},{"firstName":"Jayne","lastName":"Deely","coach":"Nick"},{"firstName":"Daniel","lastName":"Pino","coach":"Kostas"},{"firstName":"Michele","lastName":"Quiles","coach":"Elijah"},{"firstName":"Mickey","lastName":"Ruddy","coach":"Nick"},{"firstName":"Sarah","lastName":"Braginsky","coach":"Hayley"},{"firstName":"May","lastName":"Ledner","coach":"Andrew"},{"firstName":"Alexia","lastName":"Devlin","coach":"Nick"},{"firstName":"Ulises","lastName":"Amaya","coach":"Troy"},{"firstName":"Nick","lastName":"Kosarek","coach":"Nick"},{"firstName":"Felipe","lastName":"Machado","coach":"Elijah"},{"firstName":"Boyeon","lastName":"Choi","coach":"Troy"},{"firstName":"Stephen","lastName":"Zelin","coach":"Troy"},{"firstName":"Ryan","lastName":"Kellys","coach":"Nick"},{"firstName":"Rebecca","lastName":"Kivlehan","coach":"Nick"},{"firstName":"Ryann","lastName":"King","coach":"Elijah"},{"firstName":"Spiro","lastName":"Levis","coach":"Chris C"},{"firstName":"Kaitlin","lastName":"Fitzpatrick","coach":"Nick"},{"firstName":"Rajash","lastName":"Puar","coach":"Nick"},{"firstName":"Clare","lastName":"Mandaro","coach":"Elijah"},{"firstName":"Tymel","lastName":"Stewart","coach":"Nick"},{"firstName":"Doreen","lastName":"Dardashtian","coach":"Elijah"},{"firstName":"James","lastName":"Tankersley","coach":"Elijah"},{"firstName":"Maysie","lastName":"Ocera","coach":"Hayley"},{"firstName":"Ali","lastName":"Mcleod","coach":"Andrew"},{"firstName":"Thomas","lastName":"Grimaldi","coach":"Chris C"},{"firstName":"Kate","lastName":"Foran","coach":"Andrew"},{"firstName":"Manolis","lastName":"Grilakis","coach":"Andrew"},{"firstName":"Mairead","lastName":"Kress","coach":"Andrew"},{"firstName":"Dawn","lastName":"Brewer","coach":"Elijah"},{"firstName":"Matt","lastName":"St.Jean","coach":"Kostas"},{"firstName":"Caila","lastName":"Crossan","coach":"Hayley"},{"firstName":"Genevieve","lastName":"Gonzolaz","coach":"Andrew"},{"firstName":"Jennia","lastName":"Iordanou","coach":"Troy"},{"firstName":"Linnea","lastName":"Herman","coach":"Andrew"},{"firstName":"Phoenix","lastName":"Lin","coach":"Chris C"},{"firstName":"Christian","lastName":"Iordanou","coach":"Chris C"},{"firstName":"Leah","lastName":"Ruggiero","coach":"Troy"},{"firstName":"Jessica","lastName":"Daneshvar","coach":"Nick"},{"firstName":"Ian","lastName":"Paulino","coach":"Nick"},{"firstName":"Alba","lastName":"Rajanibala","coach":"Hayley"},{"firstName":"Alexsei","lastName":"Sheih","coach":"Nick"},{"firstName":"Princess","lastName":"Guerrero","coach":"Nick"},{"firstName":"Elizabeth","lastName":"Sia","coach":"Troy"},{"firstName":"Tiffany","lastName":"Do","coach":"Elijah"},{"firstName":"Evangelos","lastName":"Viglis","coach":"Andrew"},{"firstName":"Krista","lastName":"Brenner","coach":"Andrew"},{"firstName":"Markos","lastName":"Viglis","coach":"Kostas"},{"firstName":"Patrick","lastName":"Farran","coach":"Andrew"},{"firstName":"Ali","lastName":"Levin","coach":"Hayley"},{"firstName":"Vanessa","lastName":"Carney","coach":"Nick"},{"firstName":"Meghan","lastName":"Maguire","coach":"Kostas"},{"firstName":"Ken","lastName":"Weinberg","coach":"Troy"},{"firstName":"Pamela","lastName":"Clemens","coach":"Nick"},{"firstName":"Conor","lastName":"Lyman","coach":"Troy"},{"firstName":"Mariah","lastName":"Maher","coach":"Nick"},{"firstName":"Erika","lastName":"Ferrentino","coach":"Chris C"},{"firstName":"Shelly","lastName":"Vance","coach":"Andrew"},{"firstName":"Ian","lastName":"Halbwachs","coach":"Elijah"},{"firstName":"Kristen","lastName":"Leeman","coach":"Troy"},{"firstName":"Yumi","lastName":"Masuda","coach":"Nick"},{"firstName":"Mar","lastName":"Asayan","coach":"Elijah"},{"firstName":"David","lastName":"Goens","coach":"Chris C"},{"firstName":"Odin","lastName":"Zurek","coach":"Nick"},{"firstName":"Eleonore","lastName":"Dumas","coach":"Elijah"},{"firstName":"Daniel","lastName":"Leeman","coach":"Andrew"},{"firstName":"Maria","lastName":"Hara","coach":"Andrew"},{"firstName":"Ketan","lastName":"Patel","coach":"Troy"},{"firstName":"Emily","lastName":"Hartnett","coach":"Hayley"},{"firstName":"Alexandra","lastName":"Gravina","coach":"Troy"},{"firstName":"Ronald","lastName":"Arcentales","coach":"Elijah"},{"firstName":"John","lastName":"Mahramas","coach":"Andrew"},{"firstName":"James","lastName":"Fouhey","coach":"Chris C"},{"firstName":"Valeria","lastName":"Nieves","coach":"Hayley"},{"firstName":"Olivia","lastName":"Bruno","coach":"Nick"},{"firstName":"Jeff","lastName":"Griffin","coach":"Nick"},{"firstName":"Amy","lastName":"Cohen","coach":"Nick"},{"firstName":"David","lastName":"Lechtenberg","coach":"Kostas"},{"firstName":"Peter","lastName":"Grills","coach":"Chris C"},{"firstName":"Katerina","lastName":"Vlitas","coach":"Hayley"},{"firstName":"John","lastName":"Waters","coach":"Andrew"},{"firstName":"Judy","lastName":"Chung","coach":"Hayley"},{"firstName":"Cassie","lastName":"Barrett","coach":"Andrew"},{"firstName":"Henrieke","lastName":"Te Horst-Iordanou","coach":"Hayley"},{"firstName":"Cassidy","lastName":"Hamilton","coach":"Elijah"},{"firstName":"Ben","lastName":"Virgilio","coach":"Kostas"},{"firstName":"Tyler","lastName":"Baldwin","coach":"Chris C"},{"firstName":"Danica","lastName":"Roganovic","coach":"Andrew"},{"firstName":"Mariel","lastName":"Wamsley","coach":"Hayley"},{"firstName":"Deirdre","lastName":"McPartlandt","coach":"Nick"},{"firstName":"Kerry","lastName":"Yang","coach":"Andrew"},{"firstName":"Vicky","lastName":"Tzoumerkiotis","coach":"Hayley"}];
+
+// Members who are NOT on the Google Sheet and must be manually maintained here.
+// These are always merged back into the live member list after every API refresh,
+// so they never disappear once fresh data loads.
+const EXTRA_MEMBERS = [
+  { firstName: "Christine", lastName: "Carlsen", coach: "Hayley" },
+];
 
 let _memberList = MEMBERS_FALLBACK;
 
@@ -66,17 +73,20 @@ const _initialClashes = new Set(Object.keys(_initialCount).filter(k => _initialC
 
 const MEMBER_LOOKUP = {};
 function rebuildLookup(memberList) {
-  _memberList = memberList;
+  // Always merge in manually-added members not on the Google Sheet,
+  // so they survive every live API refresh instead of being wiped out.
+  const fullList = [...memberList, ...EXTRA_MEMBERS];
+  _memberList = fullList;
   // Rebuild clashes for new member list
   const newCount = {};
-  memberList.forEach(m => {
+  fullList.forEach(m => {
     const key = `${m.firstName.trim().toLowerCase()} ${m.lastName.trim()[0].toLowerCase()}`;
     newCount[key] = (newCount[key] || 0) + 1;
   });
   _initialClashes.clear();
   Object.keys(newCount).filter(k => newCount[k] > 1).forEach(k => _initialClashes.add(k));
   Object.keys(MEMBER_LOOKUP).forEach(k => delete MEMBER_LOOKUP[k]);
-  memberList.forEach(m => {
+  fullList.forEach(m => {
   const fn = m.firstName.trim().toLowerCase();
   const ln = m.lastName.trim();
   const li = ln[0].toLowerCase();
@@ -409,6 +419,34 @@ const DAY_CONFIG = {
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [10, 11, 12] },
   },
+};
+
+// ─── DEFAULT (STANDING) 1-ON-1 SESSIONS ──────────────────────────────────────
+// These happen ~90% of the time, so they auto-populate every time the matching
+// AM day's schedule is built — saving you from re-adding them manually each time.
+// On the rare day one doesn't happen, just click the "✕" on that entry to remove it.
+const DEFAULT_ONE_ON_ONES = {
+  MondayAM: [
+    { hour: 6, member: "Mike B", coach: "Chris C" },
+    { hour: 6, member: "Paul", coach: "Troy" },
+    { hour: 8, member: "Spiredoula", coach: "Hayley" },
+    { hour: 9, member: "Matt S", coach: "Chris C" },
+    { hour: 10, member: "Pio", coach: "Troy" },
+    { hour: 11, member: "David", coach: "Chris C" },
+  ],
+  WednesdayAM: [
+    { hour: 7, member: "Spiredoula", coach: "Hayley" },
+    { hour: 10, member: "Pio", coach: "Troy" },
+  ],
+  FridayAM: [
+    { hour: 6, member: "Mike B", coach: "Chris C" },
+    { hour: 9, member: "Matt S", coach: "Chris C" },
+    { hour: 10, member: "Pio", coach: "Troy" },
+    { hour: 11, member: "David", coach: "Chris C" },
+  ],
+  Saturday: [
+    { hour: 12, member: "Aurora", coach: "Andrew" },
+  ],
 };
 
 const ZONES = ["Rack", "Turf-A", "Turf-B", "Back"];
@@ -1073,6 +1111,63 @@ export default function GymScheduler() {
     setCoachOverrides({});
   }, [day, assessments]);
 
+  // Apply the standing default 1-on-1's for a given day onto a freshly-built schedule.
+  // Mirrors the manual "lock in a 1-on-1 coach" logic: if another active coach remains
+  // in that coach's zone, members simply stay with them; if not, members relocate elsewhere.
+  const applyDefaultOneOnOnes = useCallback((activeDay, scheduleResult) => {
+    const defaults = DEFAULT_ONE_ON_ONES[activeDay];
+    if (!defaults || defaults.length === 0) return;
+
+    const newOneOnOnes = {};
+    const newOverrides = {};
+
+    defaults.forEach(({ hour, member, coach }) => {
+      const h = scheduleResult[hour];
+      if (!h) return;
+
+      if (!newOneOnOnes[hour]) newOneOnOnes[hour] = [];
+      newOneOnOnes[hour].push({ coach, member, coachLocked: true, memberLocked: true });
+
+      const zone = ZONES.find(z => h.zoneResult?.[z]?.coaches?.some(s => s.coach === coach));
+      if (!zone) return;
+
+      const zoneCoaches = h.zoneResult[zone].coaches || [];
+      // Other default 1-on-1 coaches landing in this same hour shouldn't count as "active" either
+      const otherDefaultCoachesThisHour = defaults.filter(d => d.hour === hour && d.coach !== coach).map(d => d.coach);
+      const otherActiveCoaches = zoneCoaches.filter(s => !s.busy && s.coach !== coach && !otherDefaultCoachesThisHour.includes(s.coach));
+
+      if (otherActiveCoaches.length === 0) {
+        // This coach was the only one in the zone — relocate their members elsewhere
+        const allZoneItems = zoneCoaches.flatMap(s => s.items || []);
+        const semiItems = allZoneItems.filter(m => !m.isFoundations && !m.isOpenGym);
+        if (semiItems.length > 0) {
+          const targetZone = ZONES.find(z => z !== zone &&
+            h.zoneResult?.[z]?.coaches?.some(s => !s.busy) &&
+            !h.zoneResult?.[z]?.openGym);
+          if (targetZone) {
+            if (!newOverrides[hour]) newOverrides[hour] = {};
+            ZONES.forEach(z => {
+              if (newOverrides[hour][z] === undefined) {
+                const zd = h.zoneResult[z];
+                newOverrides[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
+              }
+            });
+            const movingDisplays = new Set(semiItems.map(m => m.display));
+            newOverrides[hour][zone] = (newOverrides[hour][zone]||[]).filter(m => !movingDisplays.has(m.display));
+            newOverrides[hour][targetZone] = [...(newOverrides[hour][targetZone]||[]), ...semiItems];
+          }
+        }
+      }
+    });
+
+    if (Object.keys(newOneOnOnes).length > 0) {
+      setOneOnOnes(prev => ({ ...prev, ...newOneOnOnes }));
+    }
+    if (Object.keys(newOverrides).length > 0) {
+      setOverrides(prev => ({ ...prev, ...newOverrides }));
+    }
+  }, []);
+
   const buildAndApplyShift = useCallback((detectedDay, parsed, shift, dateObj) => {
     const activeDay = shift === "AM" ? detectedDay + "AM" : detectedDay;
     if (!DAY_CONFIG[activeDay]) return;
@@ -1115,6 +1210,7 @@ export default function GymScheduler() {
       result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, undefined, undefined, undefined, undefined, !!assessmentActiveByHour[h]), total };
     });
     setSchedule(result);
+    applyDefaultOneOnOnes(activeDay, result);
     // Inject calendar assessments for this file's date
     if (dateObj) {
       const dateStr = dateObj.toISOString().split("T")[0];
@@ -1278,6 +1374,7 @@ export default function GymScheduler() {
         result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, undefined, undefined, undefined, undefined, !!assessmentActiveByHour[h]), total };
       });
       setSchedule(result);
+      applyDefaultOneOnOnes(activeDay, result);
 
       // Auto-apply calendar assessments for this date
       const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
@@ -1526,6 +1623,7 @@ export default function GymScheduler() {
                 result[h] = { ...buildHourAssignment(activeDay, h, [], 0), total: 0 };
               });
               setSchedule(result);
+              applyDefaultOneOnOnes(activeDay, result);
               setBlankStep(null);
               setBlankDay(null);
               setTimeout(() => window.print(), 300);
@@ -1647,6 +1745,16 @@ export default function GymScheduler() {
           {(() => {
             const getAssessmentCount = (hour) => assessments[hour] || 0;
 
+            // Where an un-relocated 1-on-1 should display by default for a given hour.
+            // Prefer Turf-B — it's otherwise idle most hours — but yield to anything more
+            // important already parked there (foundations or an assessment).
+            const defaultOneOnOneZone = (hour) => {
+              if (getAssessmentCount(hour) > 0) return "Back";
+              const tb = schedule[hour]?.zoneResult?.["Turf-B"];
+              const turfBOccupied = !!(tb && (tb.coaches||[]).length > 0);
+              return turfBOccupied ? "Back" : "Turf-B";
+            };
+
             const visibleZones = ZONES.filter(z => {
               if (z === "Turf-A") return true;
               // Show Turf-B if any hour has foundations on turf with <=2 members
@@ -1748,10 +1856,12 @@ export default function GymScheduler() {
                 const isOpenGymCoach = coachName === "Open Gym";
 
                 // Open gym coach: only move open gym members
-                // Regular coach: only move non-open-gym members
+                // Regular coach: only move non-open-gym, non-1-on-1 members
+                // Pinned 1-on-1 entries must never be swept up by a coach drag — they
+                // only move when the 1-on-1 item itself is dragged.
                 const fromZoneFoundItems = fromZoneAllItems.filter(m => m.isFoundations);
                 const fromZoneOpenGymItems = fromZoneAllItems.filter(m => m.isOpenGym);
-                const fromZoneSemiItems = fromZoneAllItems.filter(m => !m.isFoundations && !m.isOpenGym);
+                const fromZoneSemiItems = fromZoneAllItems.filter(m => !m.isFoundations && !m.isOpenGym && !m.isOneOnOne);
 
                 let membersToMove = [];
                 if (isOpenGymCoach) {
@@ -1785,7 +1895,9 @@ export default function GymScheduler() {
                 // Move everyone together
                 const allMoving = membersToMove;
                 const movingDisplays = new Set(allMoving.map(m => m.display));
-                currentOverrides[fromZone] = (currentOverrides[fromZone]||[]).filter(m => !movingDisplays.has(m.display));
+                // Never remove a pinned 1-on-1 item here, even if its display name happens
+                // to match a moving member's name — it only moves via its own drag.
+                currentOverrides[fromZone] = (currentOverrides[fromZone]||[]).filter(m => m.isOneOnOne || !movingDisplays.has(m.display));
                 currentOverrides[toZone] = [...(currentOverrides[toZone]||[]), ...allMoving];
                 setOverrides(prev => ({ ...prev, [hour]: currentOverrides }));
               }
@@ -1795,13 +1907,16 @@ export default function GymScheduler() {
             const moveItem = (hour, fromZone, toZone, item) => {
               // If this is a 1-on-1 member, hide the slot (keep coach excluded from floor) and pin to overrides
               if (item.isOneOnOne) {
-                const idx = item._ooIdx;
                 const coach = item._ooCoach;
-                setOneOnOnes(prev => {
-                  const arr = [...(Array.isArray(prev[hour]) ? prev[hour] : [])];
-                  if (arr[idx]) arr[idx] = { ...arr[idx], hidden: true };
-                  return { ...prev, [hour]: arr };
-                });
+                // Only the very first drag (straight off the special "Back zone" 1-on-1
+                // block) carries a valid _ooIdx — hide the underlying slot just once.
+                if (item._ooIdx !== undefined && item._ooIdx !== null) {
+                  setOneOnOnes(prev => {
+                    const arr = [...(Array.isArray(prev[hour]) ? prev[hour] : [])];
+                    if (arr[item._ooIdx]) arr[item._ooIdx] = { ...arr[item._ooIdx], hidden: true };
+                    return { ...prev, [hour]: arr };
+                  });
+                }
                 setOverrides(prev => {
                   const next = { ...prev, [hour]: { ...prev[hour] } };
                   ZONES.forEach(z => {
@@ -1810,7 +1925,13 @@ export default function GymScheduler() {
                       next[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
                     }
                   });
-                  const coachColor = COACH_COLORS[coach] || null;
+                  // Always remove this 1-on-1 entry from its current zone first — handles
+                  // both the first move (no-op, since it isn't in overrides yet) and any
+                  // later re-drag of an already-relocated 1-on-1 (prevents duplicates).
+                  next[hour][fromZone] = (next[hour][fromZone] || []).filter(m =>
+                    !(m.isOneOnOne && m.display === item.display && m._ooCoach === coach)
+                  );
+                  const coachColor = COACH_COLORS[coach] || item._ooCoachColor || null;
                   next[hour][toZone] = [...(next[hour][toZone]||[]), { display: item.display, isOneOnOne: true, _ooCoach: coach, _ooCoachColor: coachColor }];
                   return next;
                 });
@@ -1878,6 +1999,20 @@ export default function GymScheduler() {
                 next[hour][toZone] = [...next[hour][toZone], { ...item }];
                 return next;
               });
+            };
+
+            // Remove a completed 1-on-1 and put the coach back on the floor with members redistributed
+            const removeOneOnOne = (hour, realIdx) => {
+              setOneOnOnes(prev => {
+                const arr = [...(Array.isArray(prev[hour]) ? prev[hour] : [])];
+                arr.splice(realIdx, 1);
+                return { ...prev, [hour]: arr.length ? arr : undefined };
+              });
+              // Rebuild the schedule so the freed coach is treated as active floor again
+              // and members are redistributed across all current coaches for this day.
+              if (entries) {
+                rebuildScheduleWithCoaches(entries, day, absentCoaches, replacementCoaches);
+              }
             };
 
             // Assessment helpers
@@ -1998,7 +2133,13 @@ export default function GymScheduler() {
                           );
                         }
                         // Always allow drops even if zone has no scheduled coaches
-                        if (!zd || (!zd.openGym && zd.coaches.length === 0 && !coachOverrides[hour]?.[zone]?.length && !overrides[hour]?.[zone]?.length)) {
+                        // — but don't take the empty-cell shortcut if a 1-on-1 belongs here by default;
+                        // Turf-B normally has zero scheduled coaches, so it would otherwise short-circuit
+                        // past the part of the render that actually shows the 1-on-1 entry.
+                        const hasDefaultOneOnOneHere = zone === defaultOneOnOneZone(hour) &&
+                          (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).some(s =>
+                            s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden);
+                        if (!zd || (!zd.openGym && zd.coaches.length === 0 && !coachOverrides[hour]?.[zone]?.length && !overrides[hour]?.[zone]?.length && !hasDefaultOneOnOneHere)) {
                           // Render as empty droppable cell
                           const onDragOverEmpty = (e) => { e.preventDefault(); e.currentTarget.style.outline = "2px solid #3b82f6"; e.currentTarget.style.outlineOffset = "-2px"; };
                           const onDragLeaveEmpty = (e) => { e.currentTarget.style.outline = ""; e.currentTarget.style.outlineOffset = ""; };
@@ -2017,7 +2158,7 @@ export default function GymScheduler() {
                           // Check if there are any override items/coaches to show
                           const overrideCoaches = coachOverrides[hour]?.[zone] || [];
                           const overrideItems = overrides[hour]?.[zone] || [];
-                          if (overrideCoaches.length === 0 && overrideItems.length === 0) {
+                          if (overrideCoaches.length === 0 && overrideItems.length === 0 && !hasDefaultOneOnOneHere) {
                             return (
                               <td key={hour} style={{ border:`1px solid ${t.border}`, background:t.zoneBg, padding:0, minHeight:40, verticalAlign:"top" }}
                                 onDragOver={onDragOverEmpty} onDragLeave={onDragLeaveEmpty} onDrop={onDropEmpty}>
@@ -2025,7 +2166,7 @@ export default function GymScheduler() {
                               </td>
                             );
                           }
-                          // Has override content — fall through to full render with a synthetic zd
+                          // Has override content (or a default 1-on-1 belongs here) — fall through to full render with a synthetic zd
                           zd = { coaches: overrideCoaches.map(c => ({ coach: c.coach||c, busy:false, items:[] })), openGym:false };
                         }
 
@@ -2047,11 +2188,20 @@ export default function GymScheduler() {
                           return true;
                         });
                         // If 1on1 coach is the sole coach in this zone, treat zone as empty
+                        // — unless a 1-on-1 is legitimately occupying this zone right now. Checking
+                        // the slot's `hidden` flag alone isn't enough: once a 1-on-1 item has been
+                        // dragged even once, that flag stays true forever, even if it's later dragged
+                        // right back into its default zone. So we also check whether an isOneOnOne
+                        // item is actually present in this zone's current items — that's the reliable signal.
+                        const hasOneOnOneItemHere = items.some(m => m.isOneOnOne);
+                        const hasOriginalOneOnOneSlotHere = zone === defaultOneOnOneZone(hour) && oneOnOneSlots.some(s =>
+                          s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden);
+                        const hasActiveOneOnOneInZone = hasOneOnOneItemHere || hasOriginalOneOnOneSlotHere;
                         const nonBusyCoaches = getCoaches(hour, zone).filter(c => !c.busy);
-                        const oneOnOneSoleCoach = nonBusyCoaches.length > 0 &&
+                        const oneOnOneSoleCoach = !hasActiveOneOnOneInZone && nonBusyCoaches.length > 0 &&
                           nonBusyCoaches.every(c => oneOnOneCoaches.includes(c.coach.toLowerCase()));
                         const effectiveItems = oneOnOneSoleCoach ? [] : items;
-                        const zoneIsEmpty = effectiveCoachesList.length === 0 && effectiveItems.length === 0;
+                        const zoneIsEmpty = effectiveCoachesList.length === 0 && effectiveItems.length === 0 && !hasActiveOneOnOneInZone;
                         const activeCoaches = zd.coaches ? zd.coaches.filter(s => !s.busy || s.items.length > 0) : [];
 
                         // Drop zone handler
@@ -2095,6 +2245,18 @@ export default function GymScheduler() {
                                 {/* Coach name bar — draggable, hide Andrew if assessment, hide in blank template */}
                                 {!isBlankTemplate && (() => {
                                   const effectiveCoaches = effectiveCoachesList;
+                                  // A 1-on-1 is the only thing in this cell — render the same bordered
+                                  // header bar a normal coach cell gets, so it's never inconsistent
+                                  // regardless of whether this is the first render or after a drag.
+                                  // Use an invisible placeholder with the SAME font metrics as a real
+                                  // coach name span (not a guessed minHeight) so the bar height matches exactly.
+                                  if (effectiveCoaches.length === 0 && hasActiveOneOnOneInZone) {
+                                    return (
+                                      <div style={{ padding:"3px 8px 2px", display:"flex", alignItems:"center", flexWrap:"wrap", borderBottom:`1px solid ${t.border}`, background:t.zoneHeader }}>
+                                        <span style={{ fontSize:15, fontWeight:700, visibility:"hidden" }}>·</span>
+                                      </div>
+                                    );
+                                  }
                                   // Open gym: show "Open Gym" label instead of coaches
                                   if (effectiveCoaches.length === 1 && effectiveCoaches[0]?.coach === "Open Gym") {
                                     const ogSlot = schedule[hour]?.zoneResult[zone]?.coaches?.find(s => s.coach === "Open Gym");
@@ -2174,7 +2336,7 @@ export default function GymScheduler() {
 
                                 {/* Members — draggable */}
                                 <div style={{ padding:"3px 8px 4px", minHeight:24 }}>
-                                  {effectiveItems.filter(m => !m.isClassCount).length === 0 && !bodiesCoach && !infernoCoach && <div style={{ fontSize:10, color:t.dim, fontStyle:"italic" }}>—</div>}
+                                  {effectiveItems.filter(m => !m.isClassCount).length === 0 && !bodiesCoach && !infernoCoach && !hasActiveOneOnOneInZone && <div style={{ fontSize:10, color:t.dim, fontStyle:"italic" }}>—</div>}
                                   {effectiveItems.filter(m => !m.isClassCount).map((m, i) => {
                                     if (m.isCarlsen) {
                                       const carlsenIdx = items.slice(0, i+1).filter(x => x.isCarlsen).length - 1;
@@ -2372,8 +2534,8 @@ export default function GymScheduler() {
                                     )
                                   ))}
 
-                                  {/* 1-on-1 members — shown in Back zone */}
-                                  {zone === "Back" && (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden).map((slot) => {
+                                  {/* 1-on-1 members — shown in Turf-B by default, or Back if Turf-B is taken by foundations/assessment */}
+                                  {zone === defaultOneOnOneZone(hour) && (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden).map((slot) => {
                                     const coachColor = COACH_COLORS[slot.coach] || t.muted;
                                     const realIdx = (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).indexOf(slot);
                                     return (
@@ -2388,6 +2550,10 @@ export default function GymScheduler() {
                                         <span style={{ fontSize:13, color:t.dim }}>·</span>
                                         {slot.member}
                                         <span style={{ fontSize:11, fontWeight:700, color:coachColor, marginLeft:2 }}>{slot.coach}</span>
+                                        <span className="no-print" style={{ fontSize:10, color:t.dim, cursor:"pointer", marginLeft:3, padding:"0 2px" }}
+                                          title="Remove 1-on-1 and return coach to the floor"
+                                          onClick={(e) => { e.stopPropagation(); removeOneOnOne(hour, realIdx); }}
+                                          onMouseDown={(e) => { e.stopPropagation(); }}>✕</span>
                                       </div>
                                     );
                                   })}
