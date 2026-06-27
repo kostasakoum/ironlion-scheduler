@@ -339,12 +339,12 @@ const DAY_CONFIG = {
       Elijah: { start:6, end:11 }, Troy: { start:6, end:12 },
     },
     zoneLayout: {
-      6:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
-      7:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
+      6:  { Rack:["Hayley","Troy"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Chris C"] },
+      7:  { Rack:["Hayley","Troy"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:[] },
-      10: { Rack:["Hayley"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Elijah"] },
-      11: { Rack:["Hayley"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
+      10: { Rack:["Hayley","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:["Elijah"] },
+      11: { Rack:["Hayley","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
       12: { Rack:["Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 8:"Elijah", 10:"Elijah" },
@@ -427,20 +427,22 @@ const DAY_CONFIG = {
 // On the rare day one doesn't happen, just click the "✕" on that entry to remove it.
 const DEFAULT_ONE_ON_ONES = {
   MondayAM: [
-    { hour: 6, member: "Mike B", coach: "Chris C" },
+    { hour: 6, member: "Mike", coach: "Chris C" },
     { hour: 6, member: "Paul", coach: "Troy" },
     { hour: 8, member: "Spiredoula", coach: "Hayley" },
-    { hour: 9, member: "Matt S", coach: "Chris C" },
+    { hour: 9, member: "Matt", coach: "Chris C" },
     { hour: 10, member: "Pio", coach: "Troy" },
     { hour: 11, member: "David", coach: "Chris C" },
   ],
   WednesdayAM: [
+    { hour: 6, member: "Paul", coach: "Troy" },
+    { hour: 6, member: "Mike", coach: "Chris C" },
     { hour: 7, member: "Spiredoula", coach: "Hayley" },
     { hour: 10, member: "Pio", coach: "Troy" },
   ],
   FridayAM: [
-    { hour: 6, member: "Mike B", coach: "Chris C" },
-    { hour: 9, member: "Matt S", coach: "Chris C" },
+    { hour: 6, member: "Mike", coach: "Chris C" },
+    { hour: 9, member: "Matt", coach: "Chris C" },
     { hour: 10, member: "Pio", coach: "Troy" },
     { hour: 11, member: "David", coach: "Chris C" },
   ],
@@ -1120,6 +1122,36 @@ export default function GymScheduler() {
 
     const newOneOnOnes = {};
     const newOverrides = {};
+    const PER_COACH_CAP = 5; // a lone remaining coach shouldn't get overloaded just because their
+                              // zone-mate is tied up in a 1-on-1; 2+ active coaches can exceed this.
+
+    const seedOverrides = (hour, h) => {
+      if (!newOverrides[hour]) newOverrides[hour] = {};
+      ZONES.forEach(z => {
+        if (newOverrides[hour][z] === undefined) {
+          const zd = h.zoneResult[z];
+          newOverrides[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
+        }
+      });
+    };
+
+    // Picks whichever zone currently has the MOST room — accounting for any moves already
+    // made earlier in this same pass — rather than just the first structurally-active zone.
+    // Without this, redistributing a second 1-on-1's overflow can blindly re-pile onto a
+    // zone that an earlier 1-on-1 in the same hour already trimmed down.
+    const findBestTargetZone = (hour, h, excludeZone) => {
+      let best = null, bestCount = Infinity;
+      ZONES.forEach(z => {
+        if (z === excludeZone) return;
+        const hasActiveCoach = h.zoneResult?.[z]?.coaches?.some(s => !s.busy);
+        if (!hasActiveCoach || h.zoneResult?.[z]?.openGym) return;
+        const current = newOverrides[hour]?.[z] !== undefined
+          ? newOverrides[hour][z]
+          : h.zoneResult[z].coaches.flatMap(s => s.items || []);
+        if (current.length < bestCount) { bestCount = current.length; best = z; }
+      });
+      return best;
+    };
 
     defaults.forEach(({ hour, member, coach }) => {
       const h = scheduleResult[hour];
@@ -1136,25 +1168,31 @@ export default function GymScheduler() {
       const otherDefaultCoachesThisHour = defaults.filter(d => d.hour === hour && d.coach !== coach).map(d => d.coach);
       const otherActiveCoaches = zoneCoaches.filter(s => !s.busy && s.coach !== coach && !otherDefaultCoachesThisHour.includes(s.coach));
 
+      const allZoneItems = zoneCoaches.flatMap(s => s.items || []);
+      const semiItems = allZoneItems.filter(m => !m.isFoundations && !m.isOpenGym);
+      if (semiItems.length === 0) return;
+
       if (otherActiveCoaches.length === 0) {
         // This coach was the only one in the zone — relocate their members elsewhere
-        const allZoneItems = zoneCoaches.flatMap(s => s.items || []);
-        const semiItems = allZoneItems.filter(m => !m.isFoundations && !m.isOpenGym);
-        if (semiItems.length > 0) {
-          const targetZone = ZONES.find(z => z !== zone &&
-            h.zoneResult?.[z]?.coaches?.some(s => !s.busy) &&
-            !h.zoneResult?.[z]?.openGym);
+        const targetZone = findBestTargetZone(hour, h, zone);
+        if (targetZone) {
+          seedOverrides(hour, h);
+          const movingDisplays = new Set(semiItems.map(m => m.display));
+          newOverrides[hour][zone] = (newOverrides[hour][zone]||[]).filter(m => !movingDisplays.has(m.display));
+          newOverrides[hour][targetZone] = [...(newOverrides[hour][targetZone]||[]), ...semiItems];
+        }
+      } else {
+        // Other coach(es) remain — keep up to PER_COACH_CAP per remaining coach and
+        // relocate the overflow, so the lone remaining coach doesn't get overloaded.
+        const capacity = otherActiveCoaches.length * PER_COACH_CAP;
+        if (semiItems.length > capacity) {
+          const excessItems = semiItems.slice(capacity);
+          const targetZone = findBestTargetZone(hour, h, zone);
           if (targetZone) {
-            if (!newOverrides[hour]) newOverrides[hour] = {};
-            ZONES.forEach(z => {
-              if (newOverrides[hour][z] === undefined) {
-                const zd = h.zoneResult[z];
-                newOverrides[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
-              }
-            });
-            const movingDisplays = new Set(semiItems.map(m => m.display));
+            seedOverrides(hour, h);
+            const movingDisplays = new Set(excessItems.map(m => m.display));
             newOverrides[hour][zone] = (newOverrides[hour][zone]||[]).filter(m => !movingDisplays.has(m.display));
-            newOverrides[hour][targetZone] = [...(newOverrides[hour][targetZone]||[]), ...semiItems];
+            newOverrides[hour][targetZone] = [...(newOverrides[hour][targetZone]||[]), ...excessItems];
           }
         }
       }
@@ -1745,10 +1783,13 @@ export default function GymScheduler() {
           {(() => {
             const getAssessmentCount = (hour) => assessments[hour] || 0;
 
-            // Where an un-relocated 1-on-1 should display by default for a given hour.
-            // Prefer Turf-B — it's otherwise idle most hours — but yield to anything more
-            // important already parked there (foundations or an assessment).
-            const defaultOneOnOneZone = (hour) => {
+            // Where an un-relocated 1-on-1 should display by default, given which coach
+            // is running it. Chris C and Hayley always go to fixed zones; everyone else
+            // prefers Turf-B — it's otherwise idle most hours — but yields to anything
+            // more important already parked there (foundations or an assessment).
+            const defaultOneOnOneZone = (hour, coach) => {
+              if (coach === "Chris C") return "Back";
+              if (coach === "Hayley") return "Rack";
               if (getAssessmentCount(hour) > 0) return "Back";
               const tb = schedule[hour]?.zoneResult?.["Turf-B"];
               const turfBOccupied = !!(tb && (tb.coaches||[]).length > 0);
@@ -2136,9 +2177,8 @@ export default function GymScheduler() {
                         // — but don't take the empty-cell shortcut if a 1-on-1 belongs here by default;
                         // Turf-B normally has zero scheduled coaches, so it would otherwise short-circuit
                         // past the part of the render that actually shows the 1-on-1 entry.
-                        const hasDefaultOneOnOneHere = zone === defaultOneOnOneZone(hour) &&
-                          (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).some(s =>
-                            s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden);
+                        const hasDefaultOneOnOneHere = (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).some(s =>
+                          s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden && zone === defaultOneOnOneZone(hour, s.coach));
                         if (!zd || (!zd.openGym && zd.coaches.length === 0 && !coachOverrides[hour]?.[zone]?.length && !overrides[hour]?.[zone]?.length && !hasDefaultOneOnOneHere)) {
                           // Render as empty droppable cell
                           const onDragOverEmpty = (e) => { e.preventDefault(); e.currentTarget.style.outline = "2px solid #3b82f6"; e.currentTarget.style.outlineOffset = "-2px"; };
@@ -2194,8 +2234,8 @@ export default function GymScheduler() {
                         // right back into its default zone. So we also check whether an isOneOnOne
                         // item is actually present in this zone's current items — that's the reliable signal.
                         const hasOneOnOneItemHere = items.some(m => m.isOneOnOne);
-                        const hasOriginalOneOnOneSlotHere = zone === defaultOneOnOneZone(hour) && oneOnOneSlots.some(s =>
-                          s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden);
+                        const hasOriginalOneOnOneSlotHere = oneOnOneSlots.some(s =>
+                          s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden && zone === defaultOneOnOneZone(hour, s.coach));
                         const hasActiveOneOnOneInZone = hasOneOnOneItemHere || hasOriginalOneOnOneSlotHere;
                         const nonBusyCoaches = getCoaches(hour, zone).filter(c => !c.busy);
                         // Once a manual override exists for this zone — whether from the redistribution
@@ -2539,8 +2579,9 @@ export default function GymScheduler() {
                                     )
                                   ))}
 
-                                  {/* 1-on-1 members — shown in Turf-B by default, or Back if Turf-B is taken by foundations/assessment */}
-                                  {zone === defaultOneOnOneZone(hour) && (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden).map((slot) => {
+                                  {/* 1-on-1 members — Chris C always Back, Hayley always Rack, others default Turf-B
+                                      (or Back if Turf-B is taken by foundations/assessment) */}
+                                  {(Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).filter(s => s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden && zone === defaultOneOnOneZone(hour, s.coach)).map((slot) => {
                                     const coachColor = COACH_COLORS[slot.coach] || t.muted;
                                     const realIdx = (Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : []).indexOf(slot);
                                     return (
