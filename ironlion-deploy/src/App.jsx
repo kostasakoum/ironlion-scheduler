@@ -2198,7 +2198,12 @@ export default function GymScheduler() {
                           s.coachLocked && s.memberLocked && s.coach && s.member && !s.hidden);
                         const hasActiveOneOnOneInZone = hasOneOnOneItemHere || hasOriginalOneOnOneSlotHere;
                         const nonBusyCoaches = getCoaches(hour, zone).filter(c => !c.busy);
-                        const oneOnOneSoleCoach = !hasActiveOneOnOneInZone && nonBusyCoaches.length > 0 &&
+                        // Once a manual override exists for this zone — whether from the redistribution
+                        // logic or from manually dragging a member in — trust it completely and show
+                        // whatever's actually there. Only suppress the raw, untouched algorithm output
+                        // (orphaned items auto-assigned to a coach who's since been locked into a 1-on-1).
+                        const hasManualOverrideHere = overrides[hour]?.[zone] !== undefined;
+                        const oneOnOneSoleCoach = !hasActiveOneOnOneInZone && !hasManualOverrideHere && nonBusyCoaches.length > 0 &&
                           nonBusyCoaches.every(c => oneOnOneCoaches.includes(c.coach.toLowerCase()));
                         const effectiveItems = oneOnOneSoleCoach ? [] : items;
                         const zoneIsEmpty = effectiveCoachesList.length === 0 && effectiveItems.length === 0 && !hasActiveOneOnOneInZone;
