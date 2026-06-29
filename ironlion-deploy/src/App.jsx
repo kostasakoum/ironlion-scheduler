@@ -1048,8 +1048,10 @@ export default function GymScheduler() {
     const cfg = DAY_CONFIG[currentDay];
     if (!cfg) return;
 
-    // Apply Monday-specific fallback when a non-Kostas coach is removed with no replacement
-    const mondayFallback = currentDay === "Monday" && absent.size > 0
+    // Eligible for Monday-specific fallback when a coach is removed with no replacement —
+    // but whether it actually APPLIES is decided per-hour below, based on whether that
+    // hour was genuinely affected by the absence (not just because someone, somewhere, is out).
+    const mondayFallbackEligible = currentDay === "Monday" && absent.size > 0
       && Object.keys(replacements).filter(c => absent.has(c)).length === 0;
 
     const result = {};
@@ -1059,10 +1061,12 @@ export default function GymScheduler() {
 
       // Build a modified layout for this hour removing absent coaches
       const baseLayout = JSON.parse(JSON.stringify(cfg.zoneLayout[h] || {}));
+      let hourAffectedByAbsence = false;
       ZONES.forEach(z => {
         const toAdd = [];
         baseLayout[z] = (baseLayout[z] || []).filter(c => {
           if (absent.has(c)) {
+            hourAffectedByAbsence = true;
             const rep = replacements[c];
             if (rep && !(baseLayout[z] || []).includes(rep) && !toAdd.includes(rep)) toAdd.push(rep);
             return false;
@@ -1089,9 +1093,12 @@ export default function GymScheduler() {
         }
       }
 
-      // Monday fallback: a coach is removed with no replacement
+      // Monday fallback: only applies on hours actually affected by an unreplaced absence
+      // (a coach who was genuinely scheduled this hour is now gone) — never blanket-applied
+      // to hours the absent coach wasn't even part of.
       // → Chris E covers Turf/foundations, Kostas on Rack (if not absent)
-      if (mondayFallback) {
+      const mondayFallbackThisHour = mondayFallbackEligible && hourAffectedByAbsence;
+      if (mondayFallbackThisHour) {
         ZONES.forEach(z => {
           baseLayout[z] = baseLayout[z].filter(c => c !== "Chris E");
           if (!absent.has("Kostas")) baseLayout[z] = baseLayout[z].filter(c => c !== "Kostas");
@@ -1106,7 +1113,7 @@ export default function GymScheduler() {
         }
       }
 
-      result[h] = { ...buildHourAssignment(currentDay, h, hourMembers, total, baseLayout, mondayFallback, true, absent, !!(assessments[h] > 0)), total };
+      result[h] = { ...buildHourAssignment(currentDay, h, hourMembers, total, baseLayout, mondayFallbackThisHour, true, absent, !!(assessments[h] > 0)), total };
     });
     setSchedule(result);
     setOverrides({});
