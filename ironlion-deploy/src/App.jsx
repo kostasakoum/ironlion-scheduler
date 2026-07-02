@@ -389,7 +389,7 @@ const DAY_CONFIG = {
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
       7:  { Rack:["Hayley","Ricky","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
-      8:  { Rack:["Hayley","Ricky","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
+      8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah","Nick"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Ricky","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
       10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
       11: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
@@ -687,6 +687,17 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // handled in render — foundations happens in back if >=9
   }
 
+  // AM dynamic rule: when total ≥ 10 and Chris C is in Back, move Nick to Back too
+  // so Rack/Turf don't get overloaded. Under 10, the existing config placement stands.
+  if (dayName.endsWith("AM") && total >= 11 && !absentSet?.has("Nick")) {
+    const nickZone = ZONES.find(z => (layout[z]||[]).includes("Nick"));
+    const chrisCInBack = (layout["Back"]||[]).includes("Chris C");
+    if (nickZone && nickZone !== "Back" && chrisCInBack) {
+      layout[nickZone] = (layout[nickZone]||[]).filter(c => c !== "Nick");
+      if (!(layout["Back"]||[]).includes("Nick")) layout["Back"] = [...(layout["Back"]||[]), "Nick"];
+    }
+  }
+
   const semi = members.filter(m => !m.isFoundations && !m.isOpenGym && !m.isInferno && !m.isBodiesInMotion && !m.isNutritionSeminar);
   const foundations = members.filter(m => m.isFoundations);
 
@@ -725,10 +736,8 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   const fullLayout = {};
   ZONES.forEach(z => { fullLayout[z] = [...(layout[z] || [])]; });
 
-  // Cap each zone to max 2 coaches for display only
-  ZONES.forEach(z => {
-    if ((layout[z] || []).length > 2) layout[z] = layout[z].slice(0, 2);
-  });
+  // Note: no coach cap per zone — fullLayout and layout are identical here so all
+  // coaches display and their members are always included in the zoneResult output.
 
   // Floor coaches per zone (not busy) — use full layout for assignment
   const zoneCoaches = {};
