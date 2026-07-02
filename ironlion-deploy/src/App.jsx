@@ -291,9 +291,9 @@ const DAY_CONFIG = {
       Troy: { start:6, end:12 },
     },
     zoneLayout: {
-      6:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      7:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      8:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
+      6:  { Rack:["Hayley","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
+      7:  { Rack:["Hayley","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
+      8:  { Rack:["Hayley","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
       10: { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
       11: { Rack:["Hayley","Nick"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
@@ -388,11 +388,11 @@ const DAY_CONFIG = {
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
-      7:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
-      8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C","Nick"] },
+      7:  { Rack:["Hayley","Ricky","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
+      8:  { Rack:["Hayley","Ricky","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Ricky","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
-      10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
-      11: { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Nick","Chris C"] },
+      10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
+      11: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
       12: { Rack:["Nick","Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 8:"Elijah", 10:"Nick" },
@@ -1129,8 +1129,8 @@ export default function GymScheduler() {
 
     const newOneOnOnes = {};
     const newOverrides = {};
-    const PER_COACH_CAP = 5; // a lone remaining coach shouldn't get overloaded just because their
-                              // zone-mate is tied up in a 1-on-1; 2+ active coaches can exceed this.
+    const newCoachOverrides = {};
+    const PER_COACH_CAP = 5;
 
     const seedOverrides = (hour, h) => {
       if (!newOverrides[hour]) newOverrides[hour] = {};
@@ -1140,6 +1140,16 @@ export default function GymScheduler() {
           newOverrides[hour][z] = zd && !zd.openGym ? zd.coaches.flatMap(s => s.items) : [];
         }
       });
+    };
+
+    const seedCoachOverrides = (hour, h) => {
+      if (!newCoachOverrides[hour]) {
+        newCoachOverrides[hour] = {};
+        ZONES.forEach(z => {
+          const zd = h.zoneResult?.[z];
+          newCoachOverrides[hour][z] = (zd?.coaches || []).map(s => ({ coach: s.coach, busy: s.busy }));
+        });
+      }
     };
 
     // Picks whichever zone currently has the MOST room — accounting for any moves already
@@ -1205,11 +1215,49 @@ export default function GymScheduler() {
       }
     });
 
+    // General rule: when Chris C has a 1-on-1 this hour and effective floor ≤9,
+    // keep Chris C alone in Back — move floor members to Rack AND move other
+    // Back coaches' labels to Turf-A so the coach display is consistent.
+    // Applies across all days.
+    Object.keys(newOneOnOnes).forEach(hourStr => {
+      const hour = parseInt(hourStr);
+      const h = scheduleResult[hour];
+      if (!h) return;
+      const chrisCSlot = newOneOnOnes[hour].find(s => s.coach === "Chris C");
+      if (!chrisCSlot) return;
+      const effectiveFloor = h.total - 1; // subtract Chris C's 1-on-1 member
+      if (effectiveFloor > 9) return;
+
+      // Move floor members from Back to Rack
+      seedOverrides(hour, h);
+      const backItems = newOverrides[hour]["Back"] || [];
+      const itemsToMove = backItems.filter(m => !m.isFoundations && !m.isOpenGym && !m.isOneOnOne);
+      if (itemsToMove.length > 0) {
+        const movingDisplays = new Set(itemsToMove.map(m => m.display));
+        newOverrides[hour]["Back"] = backItems.filter(m => !movingDisplays.has(m.display));
+        newOverrides[hour]["Rack"] = [...(newOverrides[hour]["Rack"] || []), ...itemsToMove];
+      }
+
+      // Move non-Chris-C Back coaches to Turf-A in the coach display
+      seedCoachOverrides(hour, h);
+      const backCoaches = (newCoachOverrides[hour]["Back"] || []).filter(c => c.coach !== "Chris C");
+      if (backCoaches.length > 0) {
+        newCoachOverrides[hour]["Back"] = (newCoachOverrides[hour]["Back"] || []).filter(c => c.coach === "Chris C");
+        newCoachOverrides[hour]["Turf-A"] = [
+          ...(newCoachOverrides[hour]["Turf-A"] || []),
+          ...backCoaches,
+        ];
+      }
+    });
+
     if (Object.keys(newOneOnOnes).length > 0) {
       setOneOnOnes(prev => ({ ...prev, ...newOneOnOnes }));
     }
     if (Object.keys(newOverrides).length > 0) {
       setOverrides(prev => ({ ...prev, ...newOverrides }));
+    }
+    if (Object.keys(newCoachOverrides).length > 0) {
+      setCoachOverrides(prev => ({ ...prev, ...newCoachOverrides }));
     }
   }, []);
 
@@ -1796,6 +1844,7 @@ export default function GymScheduler() {
             // more important already parked there (foundations or an assessment).
             const defaultOneOnOneZone = (hour, coach) => {
               if (coach === "Chris C") return "Back";
+              if (coach === "Troy") return "Back";
               if (coach === "Hayley") return "Rack";
               if (getAssessmentCount(hour) > 0) return "Back";
               const tb = schedule[hour]?.zoneResult?.["Turf-B"];
