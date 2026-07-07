@@ -469,6 +469,14 @@ function fmt(h) {
 
 // Core member assignment — given a layout (zone->coach[]), assigns members using all priority rules
 // Returns: { [zone]: items[] }
+// Physical turf area fits max 5 people combined (Turf-A + Turf-B).
+// When Turf-B is occupied (foundations/BIM), Turf-A gets the remainder.
+const TURF_COMBINED_CAP = 5;
+function turfACap(layout, zoneCap) {
+  const turfBOccupied = (layout["Turf-B"] || []).length > 0;
+  return turfBOccupied ? TURF_COMBINED_CAP - (zoneCap["Turf-B"] || 2) : TURF_COMBINED_CAP;
+}
+
 function assignMembersToLayout(dayName, hour, members, customLayout) {
   const cfg = DAY_CONFIG[dayName];
   const layout = customLayout;
@@ -503,6 +511,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
 
   const hasOpenGym = members.some(m => m.isOpenGym);
 
+  const cap = (z) => z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
   const bestZone = (preferZone = null) => {
     const activeZones = ZONES.filter(z => {
       if (z === "Back" && hasOpenGym) return false; // Back reserved for open gym
@@ -515,9 +524,10 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
       return ratioA - ratioB;
     });
     if (preferZone && activeZones.includes(preferZone)) {
-      if (zoneFill[preferZone] < (cfg.zoneCap[preferZone] || 7)) return preferZone;
+      if (zoneFill[preferZone] < cap(preferZone)) return preferZone;
     }
-    return sorted[0];
+    const underCap = sorted.filter(z => zoneFill[z] < cap(z));
+    return underCap.length > 0 ? underCap[0] : sorted[0];
   };
 
   // Sort: members with an on-shift programming coach go first, so they claim their coach before cap fills
@@ -543,11 +553,13 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     // 0. Pair preferred coach / pair together
     const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
     const pairInfo = PAIR_LOOKUP[fullName];
+    let followingPair = false;
     if (pairInfo) {
       if (pairInfo.preferredCoach && pool[pairInfo.preferredCoach]) {
         const prefCoach = pairInfo.preferredCoach;
         const z = coachZoneFn(prefCoach);
-        if (z && zoneFill[z] < (cfg.zoneCap[z] || 7)) assigned = prefCoach;
+        const zCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+        if (z && zoneFill[z] < zCap) { assigned = prefCoach; followingPair = true; }
       }
       if (!assigned) {
         const pair = PAIRS[pairInfo.pairIdx];
@@ -559,7 +571,8 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
           );
           if (partnerCoach) {
             const z = coachZoneFn(partnerCoach);
-            if (z) assigned = partnerCoach; // pairs always stay together regardless of cap
+            const partnerCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+            if (z && zoneFill[z] < partnerCap) { assigned = partnerCoach; followingPair = true; }
           }
         }
       }
@@ -569,36 +582,46 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     if (!assigned && MEMBER_ZONE_PREF[fullName]) {
       const prefZone = MEMBER_ZONE_PREF[fullName];
       const candidates = floorCoachesForZone(prefZone);
-      if (candidates.length > 0 && zoneFill[prefZone] < (cfg.zoneCap[prefZone] || 7)) {
+      const prefCap = prefZone === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[prefZone] || 7);
+      if (candidates.length > 0 && zoneFill[prefZone] < prefCap) {
         assigned = candidates[0];
       }
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
-    // Pairs ignore cap to stay with their programming coach
+    // Only bypass cap if actually following a pair partner
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZoneFn(progCoach);
-      const isPairMember = !!pairInfo;
-      if (z && (isPairMember || zoneFill[z] < (cfg.zoneCap[z] || 7))) assigned = progCoach;
+      const progCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+      if (z && (followingPair || zoneFill[z] < progCap)) assigned = progCoach;
     }
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backCap = cfg.zoneCap["Back"] || 6;
       const backFill = zoneFill["Back"] || 0;
       const hayleyZone = coachZoneFn("Hayley");
-      // Only apply Hayley preference when Hayley is actually in the Back zone
-      if (hayleyZone === "Back" && backFill < backCap) {
+      const progCoachInNonBack = progCoach && pool[progCoach] && coachZoneFn(progCoach) !== "Back";
+      if (hayleyZone === "Back" && backFill < backCap && !progCoachInNonBack) {
         assigned = "Hayley";
       }
     }
     if (!assigned) {
-      const targetZone = bestZone(progCoachZone);
       const isException = HAYLEY_PREF_EXCEPTIONS.has(fullName);
+      const progCoachInBack = progCoach && pool[progCoach] && coachZoneFn(progCoach) === "Back";
+      const targetZone = bestZone(progCoachInBack ? progCoachZone : null);
       if (targetZone) {
         const cands = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
         if (cands.length > 0) assigned = cands[0];
       }
       if (!assigned) {
-        const all = Object.keys(pool).filter(c => !isException || c !== "Hayley").sort((a,b) => pool[a].items.length - pool[b].items.length);
+        // Prefer non-Back coaches if prog coach isn't in Back
+        const all = Object.keys(pool)
+          .filter(c => !isException || c !== "Hayley")
+          .sort((a,b) => {
+            const aIsBack = coachZoneFn(a) === "Back" && !progCoachInBack ? 1 : 0;
+            const bIsBack = coachZoneFn(b) === "Back" && !progCoachInBack ? 1 : 0;
+            if (aIsBack !== bIsBack) return aIsBack - bIsBack;
+            return pool[a].items.length - pool[b].items.length;
+          });
         const finalAll = all.length > 0 ? all : Object.keys(pool).sort((a,b) => pool[a].items.length - pool[b].items.length);
         if (finalAll.length > 0) assigned = finalAll[0];
       }
@@ -621,7 +644,11 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
 function buildHourAssignment(dayName, hour, members, total, customLayout, mondayFallback, ignoreZoneCap, absentSet, assessmentActive) {
   const cfg = DAY_CONFIG[dayName];
   const layout = customLayout ? JSON.parse(JSON.stringify(customLayout)) : JSON.parse(JSON.stringify(cfg.zoneLayout[hour] || {}));
-  const cap = (z) => ignoreZoneCap ? 999 : (cfg.zoneCap[z] || 7);
+  const cap = (z) => {
+    if (ignoreZoneCap) return 999;
+    if (z === "Turf-A") return turfACap(layout, cfg.zoneCap);
+    return cfg.zoneCap[z] || 7;
+  };
   // Monday fallback: Chris E takes over foundations from Kostas
   const baseFounds = cfg.foundations?.[hour];
   // If the foundations coach is absent and has a replacement, transfer foundations to replacement
@@ -792,13 +819,18 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       if (zoneFill[preferZone] < cap(preferZone)) return preferZone;
     }
 
-    return sorted[0];
+    // Prefer zones that still have room; only fall back to full zones if everything is full
+    const underCap = sorted.filter(z => zoneFill[z] < cap(z));
+    return underCap.length > 0 ? underCap[0] : sorted[0];
   };
 
   // Sort: members with an on-shift programming coach go first, so they claim their coach before zone caps fill
   const sortedSemi = [...semi].sort((a, b) => {
     const infoA = lookupMember(a.firstName, a.lastName);
     const infoB = lookupMember(b.firstName, b.lastName);
+    const aIsPair = PAIR_LOOKUP[`${a.firstName} ${a.lastName}`.toLowerCase()] ? 0 : 1;
+    const bIsPair = PAIR_LOOKUP[`${b.firstName} ${b.lastName}`.toLowerCase()] ? 0 : 1;
+    if (aIsPair !== bIsPair) return aIsPair - bIsPair; // pairs first
     const aHasCoach = infoA?.coach && pool[infoA.coach] ? 0 : 1;
     const bHasCoach = infoB?.coach && pool[infoB.coach] ? 0 : 1;
     return aHasCoach - bHasCoach;
@@ -816,11 +848,12 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // 0. Pair preferred coach — takes priority over programming coach
     const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
     const pairInfo = PAIR_LOOKUP[fullName];
+    let followingPair = false; // true only when actually placed by the pair-follow logic
     if (pairInfo) {
       if (pairInfo.preferredCoach && pool[pairInfo.preferredCoach]) {
         const prefCoach = pairInfo.preferredCoach;
         const z = coachZone(prefCoach);
-        if (z && zoneFill[z] < cap(z)) assigned = prefCoach;
+        if (z && zoneFill[z] < cap(z)) { assigned = prefCoach; followingPair = true; }
       }
       // No preferred coach — find where pair partner was assigned and match zone
       if (!assigned) {
@@ -833,7 +866,29 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
           );
           if (partnerCoach) {
             const z = coachZone(partnerCoach);
-            if (z) assigned = partnerCoach; // pairs always stay together regardless of cap
+            if (z && zoneFill[z] < cap(z)) {
+              assigned = partnerCoach; followingPair = true;
+            } else if (z) {
+              // Zone is full — relocate the already-placed partner to a zone with room,
+              // then assign both there so they stay together
+              const partnerItem = pool[partnerCoach]?.items.find(item =>
+                item.rawName?.toLowerCase() === partnerName.toLowerCase()
+              );
+              if (partnerItem) {
+                const altCoach = Object.keys(pool)
+                  .filter(c => c !== partnerCoach)
+                  .sort((a, b) => pool[a].items.length - pool[b].items.length)
+                  .find(c => { const az = coachZone(c); return az && zoneFill[az] < cap(az); });
+                if (altCoach) {
+                  const altZ = coachZone(altCoach);
+                  pool[partnerCoach].items = pool[partnerCoach].items.filter(i => i !== partnerItem);
+                  zoneFill[z] = Math.max(0, zoneFill[z] - 1);
+                  pool[altCoach].items.push(partnerItem);
+                  zoneFill[altZ]++;
+                  assigned = altCoach; followingPair = true;
+                }
+              }
+            }
           }
         }
       }
@@ -849,28 +904,33 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
-    // Pairs ignore cap to stay with their programming coach
+    // Only bypass the cap if this member is actively following a pair partner
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZone(progCoach);
-      if (z && (!!pairInfo || zoneFill[z] < cap(z))) {
+      if (z && (followingPair || zoneFill[z] < cap(z))) {
         assigned = progCoach;
       }
     }
 
     // 2. Hayley preference for women — only when Hayley is in the Back zone
+    // Skip if member's programming coach is already on the floor in a non-Back zone —
+    // those members should stay near their coach's zone, not be routed to Back.
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backFill = zoneFill["Back"] || 0;
       const hayleyZone = coachZone("Hayley");
-      // Only apply when Hayley is actually in the Back zone
-      if (hayleyZone === "Back" && backFill < cap("Back")) {
+      const progCoachInNonBack = progCoach && pool[progCoach] && coachZone(progCoach) !== "Back";
+      if (hayleyZone === "Back" && backFill < cap("Back") && !progCoachInNonBack) {
         assigned = "Hayley";
       }
     }
 
-    // 3. Zone-balanced fallback — non-female members avoid Back unless it's the only zone
+    // 3. Zone-balanced fallback
+    // Prefer non-Back for anyone whose programming coach is NOT in Back (or has no floor coach).
+    // This prevents members with Rack/Turf coaches from being sent to Back just because Back has room.
     if (!assigned) {
       const isException = HAYLEY_PREF_EXCEPTIONS.has(fullName);
-      const preferNotBack = !female || isException;
+      const progCoachInBack = progCoach && pool[progCoach] && coachZone(progCoach) === "Back";
+      const preferNotBack = !progCoachInBack;
       const targetZone = bestZone(progCoachZone, preferNotBack);
       if (targetZone) {
         const candidates = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
@@ -880,7 +940,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
         const all = Object.keys(pool)
           .filter(c => !isException || c !== "Hayley")
           .sort((a,b) => pool[a].items.length - pool[b].items.length);
-        // If filtering removes all options, fall back to any coach
         const finalAll = all.length > 0 ? all : Object.keys(pool).sort((a,b) => pool[a].items.length - pool[b].items.length);
         if (finalAll.length > 0) assigned = finalAll[0];
       }
