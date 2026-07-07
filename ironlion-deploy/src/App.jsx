@@ -714,6 +714,28 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // handled in render — foundations happens in back if >=9
   }
 
+  // Turf-split rule: when Turf-A is empty and total > 8, split the Rack coaches.
+  // Coach with more programmed members this hour stays in Rack;
+  // coach with fewer moves to Turf-A (members follow automatically).
+  if ((layout["Turf-A"] || []).length === 0 && total > 8) {
+    const rackCoaches = (layout["Rack"] || []).filter(c => !busy.has(c));
+    if (rackCoaches.length >= 2) {
+      const coachMemberCount = {};
+      rackCoaches.forEach(c => { coachMemberCount[c] = 0; });
+      members.forEach(m => {
+        const info = lookupMember(m.firstName, m.lastName);
+        if (info?.coach && coachMemberCount.hasOwnProperty(info.coach)) {
+          coachMemberCount[info.coach]++;
+        }
+      });
+      // Fewest programmed members → Turf-A
+      const sorted = [...rackCoaches].sort((a, b) => coachMemberCount[a] - coachMemberCount[b]);
+      const moveToTurf = sorted[0];
+      layout["Rack"] = (layout["Rack"] || []).filter(c => c !== moveToTurf);
+      layout["Turf-A"] = [moveToTurf];
+    }
+  }
+
   // AM dynamic rule: when total ≥ 10 and Chris C is in Back, move Nick to Back too
   // so Rack/Turf don't get overloaded. Under 10, the existing config placement stands.
   if (dayName.endsWith("AM") && total >= 11 && !absentSet?.has("Nick")) {
