@@ -323,10 +323,10 @@ const DAY_CONFIG = {
       11: { Rack:["Andrew"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       12: { Rack:["Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
-    foundations: { 7:"Nick", 8:"Chris C", 10:"Troy" },
+    foundations: { 7:"Nick", 8:"Troy", 10:"Troy" },
     foundationsTurf: { 7: true },
     foundationsFallback: ["Troy","Elijah","Nick","Andrew","Ricky"],
-    foundationsZoneOverride: { 8: () => "Back", 10: () => "Back" },
+    foundationsZoneOverride: { 10: () => "Back" },
     breakAt: { "Chris C": [10] },
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
@@ -685,6 +685,9 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   Object.entries(breakCoaches).forEach(([coach, hours]) => {
     if (hours.includes(hour)) busy.add(coach);
   });
+  // When Andrew is doing an assessment, mark him busy so his floor members
+  // are redistributed to other coaches rather than staying orphaned in Rack.
+  if (assessmentActive && (layout["Rack"]||[]).includes("Andrew")) busy.add("Andrew");
 
   // Apply 9 rule for Thursday (skip if Nick is absent)
   if (dayName === "Thursday" && cfg.nineRule && !(absentSet?.has("Nick"))) {
@@ -949,10 +952,15 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
-    // Only bypass the cap if this member is actively following a pair partner
+    // Per-coach soft cap of 5: when multiple zones are active and a coach already has 5 members,
+    // redirect extras to zone balance so Back doesn't sit empty while Rack overflows.
+    // Pairs always bypass this cap to stay together.
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZone(progCoach);
-      if (z && (followingPair || zoneFill[z] < cap(z))) {
+      const activeZones = ZONES.filter(z2 => (zoneCoaches[z2]||[]).length > 0);
+      const coachCount = pool[progCoach].items.length;
+      const atSoftCap = activeZones.length > 1 && coachCount >= 5;
+      if (z && (followingPair || (zoneFill[z] < cap(z) && !atSoftCap))) {
         assigned = progCoach;
       }
     }
@@ -1015,14 +1023,14 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
         const coachIsOnTurf = (layout["Turf-A"]||[]).includes(c);
         let foundZone;
         const isAMDayRender = dayName.endsWith("AM");
-        // Weekday AM rule takes priority: <=2 members always Turf-B (or Turf-A if assessment owns Turf-B)
-        if (isAMDayRender && foundations.length > 0 && foundations.length <= 2) {
-          foundZone = assessmentActive ? "Turf-A" : "Turf-B";
-        } else {
-        // Check for explicit zone override first
         const foundZoneOverride = cfg.foundationsZoneOverride?.[hour];
+        // Explicit zone override always wins — even over the AM Turf-B rule.
+        // (e.g. TuesdayAM 8am: Chris C foundations always goes to Back per override)
         if (foundZoneOverride) {
           foundZone = typeof foundZoneOverride === "function" ? foundZoneOverride(total) : foundZoneOverride;
+        } else if (isAMDayRender && foundations.length > 0 && foundations.length <= 2) {
+          // Weekday AM rule: <=2 members go to Turf-B (or Turf-A if assessment active there)
+          foundZone = assessmentActive ? "Turf-A" : "Turf-B";
         } else if (dayName === "Wednesday" && hour === 17 && total >= 9) {
           foundZone = "Back";
         } else if (coachIsOnTurf) {
@@ -1039,7 +1047,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
           foundZone = (!assessmentActive && foundations.length <= 2) ? "Turf-B" : "Back";
         } else {
           foundZone = ZONES.find(zz => (layout[zz]||[]).includes(c)) || z;
-        }
         }
         if (foundZone === z) {
           foundItems = foundations.map(m => ({
