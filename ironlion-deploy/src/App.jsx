@@ -988,10 +988,9 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
-    // Per-coach soft cap of 5: prevent any single coach from monopolizing their zone.
-    // Zone-level soft cap = active_coaches × per_zone_factor — reflects physical space:
-    //   Rack/Back: 3 per active coach (larger zones)
-    //   Turf-A: 2 per active coach (smaller zone, fill Back before Turf)
+    // Members going to their own programming coach are NOT blocked by zone soft caps —
+    // only the per-coach cap of 5 applies here. Zone-level distribution happens via the
+    // preferNotTurf/preferNotBack penalties in step 3 for homeless/overflow members.
     // Pairs always bypass to stay together.
     const ZONE_SOFT_CAP_PER_COACH = { "Rack": 3, "Turf-A": 2, "Turf-B": 2, "Back": 3 };
     let atSoftCap = false;
@@ -999,13 +998,8 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       const z = coachZone(progCoach);
       const activeZones = ZONES.filter(z2 => (zoneCoaches[z2]||[]).length > 0);
       const coachCount = pool[progCoach].items.length;
-      const atPerCoachCap = activeZones.length > 1 && coachCount >= 5;
-      // Zone-level soft cap based on zone type
-      const activeCoachesInZone = z ? (zoneCoaches[z]||[]).filter(c => pool[c]).length : 0;
-      const perCoachFactor = z ? (ZONE_SOFT_CAP_PER_COACH[z] || 3) : 3;
-      const zoneSoftCap = activeZones.length > 1 && activeCoachesInZone > 0 ? activeCoachesInZone * perCoachFactor : 999;
-      const atZoneSoftCap = z ? (zoneFill[z] || 0) >= zoneSoftCap : false;
-      atSoftCap = atPerCoachCap || atZoneSoftCap;
+      // Only per-coach cap in step 1 — coached members always reach their coach (up to 5)
+      atSoftCap = activeZones.length > 1 && coachCount >= 5;
       if (z && (followingPair || (zoneFill[z] < cap(z) && !atSoftCap))) {
         assigned = progCoach;
       }
