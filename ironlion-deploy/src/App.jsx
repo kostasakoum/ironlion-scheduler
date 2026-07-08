@@ -549,7 +549,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     const display = info ? info.display : `${member.firstName} ${member.lastName[0]||"?"}`;
     const progCoach = info?.coach;
     const female = isFemale(member.firstName);
-    const progCoachZone = progCoach ? coachZoneFn(progCoach) : null;
+    const progCoachZone = (progCoach && pool[progCoach]) ? coachZoneFn(progCoach) : null;
     let assigned = null;
 
     // 0. Pair preferred coach / pair together
@@ -898,7 +898,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     const display = info ? info.display : `${member.firstName} ${member.lastName[0]||"?"}`;
     const progCoach = info?.coach;
     const female = isFemale(member.firstName);
-    const progCoachZone = progCoach ? coachZone(progCoach) : null;
+    const progCoachZone = (progCoach && pool[progCoach]) ? coachZone(progCoach) : null;
 
     let assigned = null;
 
