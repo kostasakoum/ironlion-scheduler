@@ -973,15 +973,21 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 1. Programming coach if on floor AND their zone isn't over cap
-    // Per-coach soft cap of 5: when multiple zones are active and a coach already has 5 members,
-    // redirect extras to zone balance so Back doesn't sit empty while Rack overflows.
-    // Pairs always bypass this cap to stay together.
+    // Per-coach soft cap of 5: prevent any single coach from monopolizing their zone.
+    // Zone-level soft cap of 3 per active coach: ensures even distribution across zones
+    // (e.g. Rack with 2 coaches caps at 6, Back with 2 coaches caps at 6).
+    // Pairs always bypass to stay together.
     let atSoftCap = false;
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZone(progCoach);
       const activeZones = ZONES.filter(z2 => (zoneCoaches[z2]||[]).length > 0);
       const coachCount = pool[progCoach].items.length;
-      atSoftCap = activeZones.length > 1 && coachCount >= 5;
+      const atPerCoachCap = activeZones.length > 1 && coachCount >= 5;
+      // Zone-level soft cap: zone fill shouldn't exceed 3 × number of active coaches in it
+      const activeCoachesInZone = z ? (zoneCoaches[z]||[]).filter(c => pool[c]).length : 0;
+      const zoneSoftCap = activeZones.length > 1 && activeCoachesInZone > 0 ? activeCoachesInZone * 3 : 999;
+      const atZoneSoftCap = z ? (zoneFill[z] || 0) >= zoneSoftCap : false;
+      atSoftCap = atPerCoachCap || atZoneSoftCap;
       if (z && (followingPair || (zoneFill[z] < cap(z) && !atSoftCap))) {
         assigned = progCoach;
       }
