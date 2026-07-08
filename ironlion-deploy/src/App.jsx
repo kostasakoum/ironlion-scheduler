@@ -964,11 +964,12 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // Per-coach soft cap of 5: when multiple zones are active and a coach already has 5 members,
     // redirect extras to zone balance so Back doesn't sit empty while Rack overflows.
     // Pairs always bypass this cap to stay together.
+    let atSoftCap = false;
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZone(progCoach);
       const activeZones = ZONES.filter(z2 => (zoneCoaches[z2]||[]).length > 0);
       const coachCount = pool[progCoach].items.length;
-      const atSoftCap = activeZones.length > 1 && coachCount >= 5;
+      atSoftCap = activeZones.length > 1 && coachCount >= 5;
       if (z && (followingPair || (zoneFill[z] < cap(z) && !atSoftCap))) {
         assigned = progCoach;
       }
@@ -987,13 +988,14 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 3. Zone-balanced fallback
-    // Prefer non-Back for anyone whose programming coach is NOT in Back (or has no floor coach).
-    // This prevents members with Rack/Turf coaches from being sent to Back just because Back has room.
+    // When a member overflows due to the per-coach soft cap, remove the Back penalty
+    // so they flow naturally to wherever has the most room (including Back).
+    // Otherwise, prefer non-Back for members whose coach isn't in Back.
     if (!assigned) {
       const isException = HAYLEY_PREF_EXCEPTIONS.has(fullName);
       const progCoachInBack = progCoach && pool[progCoach] && coachZone(progCoach) === "Back";
-      const preferNotBack = !progCoachInBack;
-      const targetZone = bestZone(progCoachZone, preferNotBack);
+      const preferNotBack = !atSoftCap && !progCoachInBack;
+      const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack);
       if (targetZone) {
         const candidates = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
         if (candidates.length > 0) assigned = candidates[0];
