@@ -771,6 +771,18 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
   }
 
+  // Wednesday PM 5pm: when fewer than 7 floor members (excluding foundations),
+  // move Nick+foundations to Back and move Ricky to Turf-A for better coverage.
+  if (dayName === "Wednesday" && hour === 17) {
+    const floorNonFound = members.filter(m => !m.isFoundations && !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar).length;
+    if (floorNonFound < 7) {
+      layout["Turf-A"] = (layout["Turf-A"]||[]).filter(c => c !== "Nick");
+      layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
+      if (!(layout["Turf-A"]||[]).includes("Ricky")) layout["Turf-A"] = [...(layout["Turf-A"]||[]), "Ricky"];
+      if (!(layout["Back"]||[]).includes("Nick")) layout["Back"] = [...(layout["Back"]||[]), "Nick"];
+    }
+  }
+
   // AM dynamic rule: when total ≥ 10 and Chris C is in Back, move Nick to Back too
   // so Rack/Turf don't get overloaded. Under 10, the existing config placement stands.
   if (dayName.endsWith("AM") && total >= 11 && !absentSet?.has("Nick")) {
@@ -1035,9 +1047,12 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
         const isAMDayRender = dayName.endsWith("AM");
         const foundZoneOverride = cfg.foundationsZoneOverride?.[hour];
         // Explicit zone override always wins — even over the AM Turf-B rule.
-        // (e.g. TuesdayAM 8am: Chris C foundations always goes to Back per override)
+        // BUT validate that the coach is actually in the override zone; if a layout
+        // modification moved them elsewhere (e.g. Nick to Back on Wed 5pm), use their real zone.
         if (foundZoneOverride) {
-          foundZone = typeof foundZoneOverride === "function" ? foundZoneOverride(total) : foundZoneOverride;
+          const overrideResult = typeof foundZoneOverride === "function" ? foundZoneOverride(total) : foundZoneOverride;
+          const coachActualZone = ZONES.find(zz => (layout[zz]||[]).includes(c));
+          foundZone = (layout[overrideResult]||[]).includes(c) ? overrideResult : (coachActualZone || z);
         } else if (isAMDayRender && foundations.length > 0 && foundations.length <= 2) {
           // Weekday AM rule: <=2 members go to Turf-B (or Turf-A if assessment active there)
           foundZone = assessmentActive ? "Turf-A" : "Turf-B";
