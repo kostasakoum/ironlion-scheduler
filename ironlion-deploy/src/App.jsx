@@ -830,6 +830,18 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
 
   // Save full layout for pool building (so hidden extra coaches still take members)
   const fullLayout = {};
+  // Deduplicate: when multiple layout rules run (e.g. low-occupancy + Wednesday 5pm rule),
+  // a coach can end up in two zones simultaneously. Last modification wins — deduplicate
+  // in reverse zone order so the most recently assigned zone takes priority.
+  const seenCoaches = new Set();
+  [...ZONES].reverse().forEach(z => {
+    layout[z] = (layout[z] || []).filter(c => {
+      if (seenCoaches.has(c)) return false;
+      seenCoaches.add(c);
+      return true;
+    });
+  });
+
   ZONES.forEach(z => { fullLayout[z] = [...(layout[z] || [])]; });
 
   // Note: no coach cap per zone — fullLayout and layout are identical here so all
