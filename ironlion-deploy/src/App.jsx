@@ -1491,6 +1491,29 @@ export default function GymScheduler() {
     setSchedule(result);
   }, [membersLoaded, entries, day]);
 
+  // When an assessment is manually added/removed, rebuild just that hour so Andrew's
+  // busy status and Ricky's relocation are correctly applied even for manually-added assessments.
+  const prevAssessmentsRef = useRef({});
+  useEffect(() => {
+    if (!schedule || !entries || !day) return;
+    const cfg = DAY_CONFIG[day];
+    if (!cfg) return;
+    const prev = prevAssessmentsRef.current;
+    const changedHours = cfg.hours.filter(h => (assessments[h] || 0) !== (prev[h] || 0));
+    prevAssessmentsRef.current = { ...assessments };
+    if (changedHours.length === 0) return;
+    setSchedule(prevSchedule => {
+      const result = { ...prevSchedule };
+      changedHours.forEach(h => {
+        // Don't rebuild if user has made manual overrides for this hour
+        if (overrides[h] && Object.keys(overrides[h]).some(z => overrides[h][z].length > 0)) return;
+        const hourMembers = entries.filter(e => e.hour === h);
+        result[h] = { ...buildHourAssignment(day, h, hourMembers, hourMembers.length, undefined, undefined, undefined, undefined, !!(assessments[h] > 0)), total: hourMembers.length };
+      });
+      return result;
+    });
+  }, [assessments]);
+
   const processFile = useCallback(async (file) => {
     setError(null);
     try {
