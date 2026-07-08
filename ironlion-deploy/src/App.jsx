@@ -471,8 +471,10 @@ function fmt(h) {
 // Returns: { [zone]: items[] }
 // Physical turf area fits max 5 people combined (Turf-A + Turf-B).
 // When Turf-B is occupied (foundations/BIM), Turf-A gets the remainder.
+// When an assessment occupies Turf-B, Turf-A is limited to 3 (5 - 2 assessment spots).
 const TURF_COMBINED_CAP = 5;
-function turfACap(layout, zoneCap) {
+function turfACap(layout, zoneCap, assessmentActive) {
+  if (assessmentActive) return 3; // Turf-B taken by assessment: 5 combined - 2 = 3
   const turfBOccupied = (layout["Turf-B"] || []).length > 0;
   return turfBOccupied ? TURF_COMBINED_CAP - (zoneCap["Turf-B"] || 2) : TURF_COMBINED_CAP;
 }
@@ -511,7 +513,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
 
   const hasOpenGym = members.some(m => m.isOpenGym);
 
-  const cap = (z) => z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+  const cap = (z) => z === "Turf-A" ? turfACap(layout, cfg.zoneCap, false) : (cfg.zoneCap[z] || 7);
   const bestZone = (preferZone = null) => {
     const activeZones = ZONES.filter(z => {
       if (z === "Back" && hasOpenGym) return false; // Back reserved for open gym
@@ -558,7 +560,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
       if (pairInfo.preferredCoach && pool[pairInfo.preferredCoach]) {
         const prefCoach = pairInfo.preferredCoach;
         const z = coachZoneFn(prefCoach);
-        const zCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+        const zCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap, false) : (cfg.zoneCap[z] || 7);
         if (z && zoneFill[z] < zCap) { assigned = prefCoach; followingPair = true; }
       }
       if (!assigned) {
@@ -571,7 +573,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
           );
           if (partnerCoach) {
             const z = coachZoneFn(partnerCoach);
-            const partnerCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+            const partnerCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap, false) : (cfg.zoneCap[z] || 7);
             if (z && zoneFill[z] < partnerCap) { assigned = partnerCoach; followingPair = true; }
           }
         }
@@ -582,7 +584,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     if (!assigned && MEMBER_ZONE_PREF[fullName]) {
       const prefZone = MEMBER_ZONE_PREF[fullName];
       const candidates = floorCoachesForZone(prefZone);
-      const prefCap = prefZone === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[prefZone] || 7);
+      const prefCap = prefZone === "Turf-A" ? turfACap(layout, cfg.zoneCap, false) : (cfg.zoneCap[prefZone] || 7);
       if (candidates.length > 0 && zoneFill[prefZone] < prefCap) {
         assigned = candidates[0];
       }
@@ -592,7 +594,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
     // Only bypass cap if actually following a pair partner
     if (!assigned && progCoach && pool[progCoach]) {
       const z = coachZoneFn(progCoach);
-      const progCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap) : (cfg.zoneCap[z] || 7);
+      const progCap = z === "Turf-A" ? turfACap(layout, cfg.zoneCap, false) : (cfg.zoneCap[z] || 7);
       if (z && (followingPair || zoneFill[z] < progCap)) assigned = progCoach;
     }
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
@@ -646,7 +648,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   const layout = customLayout ? JSON.parse(JSON.stringify(customLayout)) : JSON.parse(JSON.stringify(cfg.zoneLayout[hour] || {}));
   const cap = (z) => {
     if (ignoreZoneCap) return 999;
-    if (z === "Turf-A") return turfACap(layout, cfg.zoneCap);
+    if (z === "Turf-A") return turfACap(layout, cfg.zoneCap, assessmentActive);
     return cfg.zoneCap[z] || 7;
   };
   // Monday fallback: Chris E takes over foundations from Kostas
@@ -760,6 +762,13 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       layout["Rack"] = (layout["Rack"] || []).filter(c => c !== moveToTurf);
       layout["Turf-A"] = [moveToTurf];
     }
+  }
+
+  // When Andrew is in an assessment, move Ricky from Back to Rack
+  // so Kostas isn't alone on the floor handling a full Rack load.
+  if (assessmentActive && (layout["Rack"]||[]).includes("Andrew") && (layout["Back"]||[]).includes("Ricky")) {
+    layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
+    if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
   }
 
   // AM dynamic rule: when total ≥ 10 and Chris C is in Back, move Nick to Back too
