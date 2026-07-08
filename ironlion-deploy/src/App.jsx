@@ -976,25 +976,24 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     // 2. Hayley preference for women — only when Hayley is in the Back zone
-    // Skip if member's programming coach is already on the floor in a non-Back zone —
-    // those members should stay near their coach's zone, not be routed to Back.
+    // Skip if member's programming coach is ACTIVELY on the floor in a non-Back zone.
     if (!assigned && female && !HAYLEY_PREF_EXCEPTIONS.has(fullName) && pool["Hayley"]) {
       const backFill = zoneFill["Back"] || 0;
       const hayleyZone = coachZone("Hayley");
-      const progCoachInNonBack = progCoach && pool[progCoach] && coachZone(progCoach) !== "Back";
-      if (hayleyZone === "Back" && backFill < cap("Back") && !progCoachInNonBack) {
+      const progCoachActiveInNonBack = !!(progCoach && pool[progCoach] && coachZone(progCoach) !== "Back");
+      if (hayleyZone === "Back" && backFill < cap("Back") && !progCoachActiveInNonBack) {
         assigned = "Hayley";
       }
     }
 
     // 3. Zone-balanced fallback
-    // When a member overflows due to the per-coach soft cap, remove the Back penalty
-    // so they flow naturally to wherever has the most room (including Back).
-    // Otherwise, prefer non-Back for members whose coach isn't in Back.
+    // Only prefer non-Back when member's programming coach is ACTIVELY on the floor in a non-Back zone.
+    // If their coach is busy (e.g. Andrew in assessment) or absent, no Back penalty —
+    // they go to wherever has the most room, which is usually Back.
     if (!assigned) {
       const isException = HAYLEY_PREF_EXCEPTIONS.has(fullName);
-      const progCoachInBack = progCoach && pool[progCoach] && coachZone(progCoach) === "Back";
-      const preferNotBack = !atSoftCap && !progCoachInBack;
+      const progCoachActiveInNonBack = !!(progCoach && pool[progCoach] && coachZone(progCoach) !== "Back");
+      const preferNotBack = !atSoftCap && progCoachActiveInNonBack;
       const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack);
       if (targetZone) {
         const candidates = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
