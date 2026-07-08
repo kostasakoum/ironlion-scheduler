@@ -714,10 +714,33 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // handled in render — foundations happens in back if >=9
   }
 
+  // Low-occupancy rule: ≤4 floor members → consolidate all non-special coaches to Rack.
+  // "Special" coaches (foundations, inferno, BIM, break) stay in their designated zones.
+  const floorTotal = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar && !m.isInferno && !m.isBodiesInMotion && !m.isFoundations).length;
+  if (floorTotal <= 4) {
+    const breakCoachNames = new Set(Object.entries(cfg.breakAt || {}).filter(([, hrs]) => hrs.includes(hour)).map(([c]) => c));
+    const specialCoaches = new Set([
+      cfg.foundations?.[hour], cfg.inferno?.[hour], cfg.bodiesInMotion?.[hour],
+      ...breakCoachNames
+    ].filter(Boolean));
+    // Collect all floor coaches (non-special) across all zones
+    const allFloorCoaches = [];
+    const seen = new Set();
+    ZONES.forEach(z => {
+      (layout[z] || []).forEach(c => {
+        if (!specialCoaches.has(c) && !seen.has(c)) { allFloorCoaches.push(c); seen.add(c); }
+      });
+    });
+    // Clear non-special coaches from all zones, then put them all in Rack
+    ZONES.forEach(z => { layout[z] = (layout[z] || []).filter(c => specialCoaches.has(c)); });
+    layout["Rack"] = [...(layout["Rack"] || []), ...allFloorCoaches];
+  }
+
   // Turf-split rule: when Turf-A is empty and total > 8, split the Rack coaches.
   // Coach with more programmed members this hour stays in Rack;
   // coach with fewer moves to Turf-A (members follow automatically).
-  if ((layout["Turf-A"] || []).length === 0 && total > 8) {
+  // Skip if low-occupancy consolidation already fired (floorTotal ≤ 4).
+  if (floorTotal > 4 && (layout["Turf-A"] || []).length === 0 && total > 8) {
     const rackCoaches = (layout["Rack"] || []).filter(c => !busy.has(c));
     if (rackCoaches.length >= 2) {
       const coachMemberCount = {};
@@ -747,7 +770,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
   }
 
-  const semi = members.filter(m => !m.isFoundations && !m.isOpenGym && !m.isInferno && !m.isBodiesInMotion && !m.isNutritionSeminar);
+  const semi = members.filter(m => !m.isFoundations && !m.isOpenGym && !m.isInferno && !m.isBodiesInMotion && !m.isNutritionSeminar && !m.isLateCancel);
   const foundations = members.filter(m => m.isFoundations);
 
   // If foundations coach is not Chris C and <=2 foundations members, move to Turf-B
@@ -1469,6 +1492,9 @@ export default function GymScheduler() {
         const row = rows[i];
         const clientRaw = String(row[6]||"").trim();
         const desc = String(row[3]||"");
+        // Status is column J (index 9) in the Mindbody Schedule at a Glance export
+        const status = String(row[9]||"").trim().toLowerCase();
+        const isLateCancel = status.includes("late cancel") || status.includes("late_cancel");
         if (!clientRaw || clientRaw==="undefined") continue;
         const hour = parseHour(row[1]);
         if (hour===null) continue;
@@ -1481,7 +1507,7 @@ export default function GymScheduler() {
         const isBodiesInMotion = desc.toLowerCase().includes("bodies in motion");
         const isNutritionSeminar = desc.toLowerCase().includes("nutrition");
         const isCarlsen = firstName.toLowerCase() === "christopher" && lastName.toLowerCase() === "carlsen";
-        if (firstName) parsed.push({ hour, firstName, lastName, isFoundations, isOpenGym, isInferno, isBodiesInMotion, isNutritionSeminar, isCarlsen });
+        if (firstName) parsed.push({ hour, firstName, lastName, isFoundations, isOpenGym, isInferno, isBodiesInMotion, isNutritionSeminar, isCarlsen, isLateCancel });
       }
       if (parsed.length===0) { setError("No sign-ups found. Use the 'Schedule at a Glance' report."); return; }
       // Auto-detect day of week from the file's date column
@@ -2243,7 +2269,7 @@ export default function GymScheduler() {
                     {cfg.hours.map(hour => {
                       const h = schedule[hour];
                       const baseTotal = h?.total ?? 0;
-                      const classMembers = entries ? entries.filter(e => e.hour === hour && (e.isInferno || e.isBodiesInMotion || e.isNutritionSeminar)).length : 0;
+                      const classMembers = entries ? entries.filter(e => e.hour === hour && (e.isInferno || e.isBodiesInMotion || e.isNutritionSeminar || e.isLateCancel)).length : 0;
                       const ogCount = entries ? entries.filter(e => e.hour === hour && e.isOpenGym).length : 0;
                       const wlCount = (waitlist[hour]||[]).filter(e => e.resolved).length;
                       const total = baseTotal - classMembers - ogCount + wlCount;
@@ -2655,6 +2681,18 @@ export default function GymScheduler() {
                                       {m.isWaitlist && <span style={{ fontSize:10, color:"#0891b2", fontWeight:700, marginLeft:2 }}>W</span>}
                                       {m.isOneOnOne && m._ooCoach && <span style={{ fontSize:11, fontWeight:700, color:COACH_COLORS[m._ooCoach]||t.muted, marginLeft:2 }}>{m._ooCoach}</span>}
                                         
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* Late cancels — shown with strikethrough in Rack only, not counted */}
+                                  {zone === "Rack" && (entries||[]).filter(e => e.hour === hour && e.isLateCancel).map((m, i) => {
+                                    const info = lookupMember(m.firstName, m.lastName);
+                                    const display = info ? info.display : `${m.firstName} ${m.lastName[0]||"?"}`;
+                                    return (
+                                      <div key={`lc-${i}`} style={{ fontSize:13, padding:"2px 0", display:"flex", alignItems:"center", gap:3, color:t.dim, opacity:0.6 }}>
+                                        <span style={{ fontSize:12, color:t.dim, flexShrink:0 }}>·</span>
+                                        <span style={{ textDecoration:"line-through" }}>{display}</span>
                                       </div>
                                     );
                                   })}
