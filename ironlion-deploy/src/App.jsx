@@ -878,7 +878,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // Returns the zone with the most room relative to its cap (ignoring empty/null zones)
   const hasOpenGym = members.some(m => m.isOpenGym);
 
-  const bestZone = (preferZone = null, preferNotBack = false) => {
+  const bestZone = (preferZone = null, preferNotBack = false, preferNotTurf = false) => {
     const activeZones = ZONES.filter(z => {
       if (z === "Back" && hasOpenGym) return false; // Back reserved for open gym
       return (zoneCoaches[z]||[]).length > 0;
@@ -886,12 +886,15 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     if (activeZones.length === 0) return null;
 
     // Sort by fill ratio (ascending) — most room first
-    // If preferNotBack, penalize Back zone unless it's the only option
     const sorted = activeZones.slice().sort((a, b) => {
       const capA = cap(a);
       const capB = cap(b);
-      const ratioA = (zoneFill[a] / capA) + (preferNotBack && a === "Back" ? 0.5 : 0);
-      const ratioB = (zoneFill[b] / capB) + (preferNotBack && b === "Back" ? 0.5 : 0);
+      const ratioA = (zoneFill[a] / capA)
+        + (preferNotBack && a === "Back" ? 0.5 : 0)
+        + (preferNotTurf && (a === "Turf-A" || a === "Turf-B") ? 0.4 : 0);
+      const ratioB = (zoneFill[b] / capB)
+        + (preferNotBack && b === "Back" ? 0.5 : 0)
+        + (preferNotTurf && (b === "Turf-A" || b === "Turf-B") ? 0.4 : 0);
       return ratioA - ratioB;
     });
 
@@ -1023,11 +1026,14 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // Only prefer non-Back when member's programming coach is ACTIVELY on the floor in a non-Back zone.
     // If their coach is busy (e.g. Andrew in assessment) or absent, no Back penalty —
     // they go to wherever has the most room, which is usually Back.
+    // Also penalize Turf-A for members with no active floor coach — prefer Back over Turf.
     if (!assigned) {
       const isException = HAYLEY_PREF_EXCEPTIONS.has(fullName);
       const progCoachActiveInNonBack = !!(progCoach && pool[progCoach] && coachZone(progCoach) !== "Back");
       const preferNotBack = !atSoftCap && progCoachActiveInNonBack;
-      const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack);
+      // Homeless members (no active floor coach) should prefer Back over Turf
+      const preferNotTurf = !atSoftCap && !progCoachActiveInNonBack;
+      const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack, preferNotTurf);
       if (targetZone) {
         const candidates = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
         if (candidates.length > 0) assigned = candidates[0];
