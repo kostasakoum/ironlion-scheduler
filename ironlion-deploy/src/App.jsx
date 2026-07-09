@@ -691,9 +691,12 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // are redistributed to other coaches rather than staying orphaned in Rack.
   if (assessmentActive && (layout["Rack"]||[]).includes("Andrew")) busy.add("Andrew");
 
-  // Apply 9 rule for Thursday (skip if Nick is absent)
+  // Thursday PM: Nick goes to Back only when effective floor members > 9.
+  // Use effective count (exclude late cancels, open gym, nutrition) so late cancels
+  // don't incorrectly trigger the rule and send Nick to Back on lighter hours.
   if (dayName === "Thursday" && cfg.nineRule && !(absentSet?.has("Nick"))) {
-    if (total >= 9) {
+    const effectiveFloor = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar).length;
+    if (effectiveFloor > 9) {
       Object.keys(layout).forEach(z => {
         layout[z] = layout[z].filter(c => c !== "Nick");
       });
@@ -780,6 +783,23 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
       if (!(layout["Turf-A"]||[]).includes("Ricky")) layout["Turf-A"] = [...(layout["Turf-A"]||[]), "Ricky"];
       if (!(layout["Back"]||[]).includes("Nick")) layout["Back"] = [...(layout["Back"]||[]), "Nick"];
+    }
+  }
+
+  // Wednesday/Thursday/Friday PM: when effective floor members ≤ 9, don't use Back —
+  // move Back coaches to Rack so everyone stays up front.
+  // Foundations coach is excluded — they stay in Back (or Turf-B) for their own group.
+  if ((dayName === "Wednesday" || dayName === "Thursday" || dayName === "Friday") && !dayName.endsWith("AM")) {
+    const effectiveFloor = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar).length;
+    if (effectiveFloor <= 9) {
+      const foundCoachThisHour = cfg.foundations?.[hour];
+      const backCoachesToMove = (layout["Back"] || []).filter(c => c && c !== foundCoachThisHour);
+      if (backCoachesToMove.length > 0) {
+        layout["Back"] = (layout["Back"] || []).filter(c => !backCoachesToMove.includes(c));
+        backCoachesToMove.forEach(c => {
+          if (!(layout["Rack"] || []).includes(c)) layout["Rack"] = [...(layout["Rack"] || []), c];
+        });
+      }
     }
   }
 
