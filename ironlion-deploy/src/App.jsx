@@ -227,20 +227,20 @@ const DAY_CONFIG = {
   Thursday: {
     hours: [16,17,18,19,20],
     coaches: {
-      Kostas: { start:16, end:21 }, Andrew: { start:16, end:20 },
+      Andrew: { start:16, end:20 }, "Chris E": { start:17, end:21 },
       Nick: { start:16, end:20 }, Elijah: { start:16, end:20 },
     },
     zoneLayout: {
-      16: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Nick"], "Turf-B":[], Back:[] },
-      17: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Nick"], "Turf-B":[], Back:[] },
-      18: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Nick"], "Turf-B":[], Back:[] },
-      19: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Nick"], "Turf-B":[], Back:[] },
-      20: { Rack:["Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
+      16: { Rack:["Andrew","Nick"], "Turf-A":["Elijah"], "Turf-B":[], Back:[] },
+      17: { Rack:["Andrew","Nick"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:[] },
+      18: { Rack:["Andrew","Nick"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:[] },
+      19: { Rack:["Andrew","Nick"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:[] },
+      20: { Rack:["Chris E"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
-    // 9 rule: if >=9, Nick moves to Back
-    nineRule: { backCoach: "Nick", turf: "Elijah" },
+    // 9 rule: if >9 effective, Elijah moves to Back
+    nineRule: { backCoach: "Elijah", turf: "Chris E" },
     foundations: { 17:"Elijah", 19:"Elijah" },
-    foundationsFallback: ["Kostas","Andrew","Nick","Hayley"],
+    foundationsFallback: ["Andrew","Chris E","Nick","Hayley"],
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
@@ -694,13 +694,13 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // Thursday PM: Nick goes to Back only when effective floor members > 9.
   // Use effective count (exclude late cancels, open gym, nutrition) so late cancels
   // don't incorrectly trigger the rule and send Nick to Back on lighter hours.
-  if (dayName === "Thursday" && cfg.nineRule && !(absentSet?.has("Nick"))) {
+  if (dayName === "Thursday" && cfg.nineRule && !(absentSet?.has("Elijah"))) {
     const effectiveFloor = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar).length;
     if (effectiveFloor > 9) {
       Object.keys(layout).forEach(z => {
-        layout[z] = layout[z].filter(c => c !== "Nick");
+        layout[z] = layout[z].filter(c => c !== "Elijah");
       });
-      layout["Back"] = ["Nick"];
+      layout["Back"] = ["Elijah"];
     }
   }
 
