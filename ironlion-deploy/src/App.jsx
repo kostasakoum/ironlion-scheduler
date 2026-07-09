@@ -898,7 +898,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // Returns the zone with the most room relative to its cap (ignoring empty/null zones)
   const hasOpenGym = members.some(m => m.isOpenGym);
 
-  const bestZone = (preferZone = null, preferNotBack = false, preferNotTurf = false) => {
+  const bestZone = (preferZone = null, preferNotBack = false) => {
     const activeZones = ZONES.filter(z => {
       if (z === "Back" && hasOpenGym) return false; // Back reserved for open gym
       return (zoneCoaches[z]||[]).length > 0;
@@ -911,10 +911,10 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       const capB = cap(b);
       const ratioA = (zoneFill[a] / capA)
         + (preferNotBack && a === "Back" ? 0.5 : 0)
-        + (preferNotTurf && (a === "Turf-A" || a === "Turf-B") ? 0.4 : 0);
+;
       const ratioB = (zoneFill[b] / capB)
         + (preferNotBack && b === "Back" ? 0.5 : 0)
-        + (preferNotTurf && (b === "Turf-A" || b === "Turf-B") ? 0.4 : 0);
+;
       return ratioA - ratioB;
     });
 
@@ -1010,7 +1010,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     // 1. Programming coach if on floor AND their zone isn't over cap
     // Members going to their own programming coach are NOT blocked by zone soft caps —
     // only the per-coach cap of 5 applies here. Zone-level distribution happens via the
-    // preferNotTurf/preferNotBack penalties in step 3 for homeless/overflow members.
+    // preferNotBack penalty in step 3 for members with active floor coaches in non-Back zones.
     // Pairs always bypass to stay together.
     const ZONE_SOFT_CAP_PER_COACH = { "Rack": 3, "Turf-A": 2, "Turf-B": 2, "Back": 3 };
     let atSoftCap = false;
@@ -1046,8 +1046,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       const progCoachActiveInNonBack = !!(progCoach && pool[progCoach] && coachZone(progCoach) !== "Back");
       const preferNotBack = !atSoftCap && progCoachActiveInNonBack;
       // Homeless members (no active floor coach) should prefer Back over Turf
-      const preferNotTurf = !atSoftCap && !progCoachActiveInNonBack;
-      const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack, preferNotTurf);
+      const targetZone = bestZone(atSoftCap ? null : progCoachZone, preferNotBack);
       if (targetZone) {
         const candidates = floorCoachesForZone(targetZone).filter(c => !isException || c !== "Hayley");
         if (candidates.length > 0) assigned = candidates[0];
