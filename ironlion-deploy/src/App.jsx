@@ -1148,6 +1148,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       return {
         display: info ? info.display : `${m.firstName} ${m.lastName[0]||"?"}`,
         isOpenGym: true,
+        isLateCancel: m.isLateCancel || false,
       };
     });
     zoneResult["Back"] = { coaches: [{ coach: "Open Gym", busy: false, items: ogItems }], isOpenGymHour: true };
@@ -2767,11 +2768,12 @@ export default function GymScheduler() {
                                           e.currentTarget.style.opacity = "0.4";
                                         }}
                                         onDragEnd={(e) => { e.currentTarget.style.opacity = "1"; }}
-                                        style={{ fontSize:14, padding:"3px 0", cursor:"grab", userSelect:"none",
-                                          color: m.isFoundations ? t.foundText : m.noMatch ? t.noMatchText : t.chipText,
+                                        style={{ fontSize:14, padding:"3px 0", cursor: m.isLateCancel ? "default" : "grab", userSelect:"none",
+                                          color: m.isLateCancel ? t.dim : m.isFoundations ? t.foundText : m.noMatch ? t.noMatchText : t.chipText,
+                                          opacity: m.isLateCancel ? 0.6 : 1,
                                           display:"flex", alignItems:"center", gap:3 }}>
                                         <span style={{ fontSize:13, color:t.dim, flexShrink:0 }}>·</span>
-                                        {m.display}
+                                        <span style={{ textDecoration: m.isLateCancel ? "line-through" : "none" }}>{m.display}</span>
                                         {m.isFoundations && !m.isClassCount && <span style={{ fontSize:10, color:t.foundText, fontWeight:700, marginLeft:2 }}>F</span>}
                                       {m.isWaitlist && <span style={{ fontSize:10, color:"#0891b2", fontWeight:700, marginLeft:2 }}>W</span>}
                                       {m.isOneOnOne && m._ooCoach && <span style={{ fontSize:11, fontWeight:700, color:COACH_COLORS[m._ooCoach]||t.muted, marginLeft:2 }}>{m._ooCoach}</span>}
@@ -2780,8 +2782,8 @@ export default function GymScheduler() {
                                     );
                                   })}
 
-                                  {/* Late cancels — shown with strikethrough in Rack only, not counted */}
-                                  {zone === "Rack" && (entries||[]).filter(e => e.hour === hour && e.isLateCancel).map((m, i) => {
+                                  {/* Late cancels — shown with strikethrough in Rack only (excluding open gym late cancels which show in Back) */}
+                                  {zone === "Rack" && (entries||[]).filter(e => e.hour === hour && e.isLateCancel && !e.isOpenGym).map((m, i) => {
                                     const info = lookupMember(m.firstName, m.lastName);
                                     const display = info ? info.display : `${m.firstName} ${m.lastName[0]||"?"}`;
                                     return (
