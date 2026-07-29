@@ -337,15 +337,16 @@ const DAY_CONFIG = {
     coaches: {
       "Chris C": { start:6, end:13 }, Hayley: { start:6, end:12 },
       Elijah: { start:6, end:11 }, Troy: { start:6, end:12 },
+      Kostas: { start:10, end:13 },
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Troy"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Chris C"] },
       7:  { Rack:["Hayley","Troy"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Hayley"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:[] },
-      10: { Rack:["Hayley","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:["Elijah"] },
-      11: { Rack:["Hayley","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
-      12: { Rack:["Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
+      10: { Rack:["Hayley","Kostas","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:["Elijah"] },
+      11: { Rack:["Hayley","Kostas","Chris C"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
+      12: { Rack:["Chris C","Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 8:"Elijah", 10:"Elijah" },
     foundationsFallback: ["Troy","Nick","Hayley","Chris C"],
@@ -385,15 +386,16 @@ const DAY_CONFIG = {
       "Chris C": { start:6, end:13 }, Nick: { start:6, end:13 },
       Hayley: { start:6, end:12 }, Troy: { start:6, end:12 },
       Elijah: { start:7, end:11 }, Ricky: { start:6, end:12 },
+      Kostas: { start:10, end:13 },
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C","Nick"] },
       7:  { Rack:["Hayley","Ricky","Nick"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Elijah","Nick"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Ricky","Chris C"], "Turf-A":["Troy","Elijah"], "Turf-B":[], Back:["Nick"] },
-      10: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
-      11: { Rack:["Hayley","Ricky"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
-      12: { Rack:["Nick","Chris C"], "Turf-A":[], "Turf-B":[], Back:[] },
+      10: { Rack:["Hayley","Ricky","Kostas"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
+      11: { Rack:["Hayley","Ricky","Kostas"], "Turf-A":["Troy","Nick"], "Turf-B":[], Back:["Chris C"] },
+      12: { Rack:["Nick","Chris C","Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 8:"Elijah", 10:"Nick" },
     foundationsTurf: { 8: true },
@@ -850,6 +852,37 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
 
   // Save full layout for pool building (so hidden extra coaches still take members)
   const fullLayout = {};
+  // When Andrew is in assessment on an AM shift, move Troy from Turf-A to Rack
+  // so Rack isn't left with only a busy coach.
+  if (assessmentActive && dayName.endsWith("AM") &&
+      (layout["Rack"]||[]).includes("Andrew") &&
+      (layout["Turf-A"]||[]).includes("Troy")) {
+    layout["Turf-A"] = (layout["Turf-A"]||[]).filter(c => c !== "Troy");
+    if (!(layout["Rack"]||[]).includes("Troy")) layout["Rack"] = [...(layout["Rack"]||[]), "Troy"];
+  }
+
+  // General rule: Rack must always have at least one active (non-busy, non-break) coach.
+  // If all Rack coaches are going to be busy (assessment, foundations, break),
+  // pull the first available active coach from Turf-A up to Rack.
+  {
+    const specialCoachesHour = new Set([
+      cfg.foundations?.[hour],
+      cfg.inferno?.[hour],
+      cfg.bodiesInMotion?.[hour],
+      ...Object.entries(cfg.breakAt || {}).filter(([,hrs]) => hrs.includes(hour)).map(([c]) => c),
+      ...(assessmentActive ? ["Andrew"] : []),
+    ].filter(Boolean));
+    const rackActive = (layout["Rack"]||[]).filter(c => !specialCoachesHour.has(c));
+    if (rackActive.length === 0 && (layout["Rack"]||[]).length > 0) {
+      const available = (layout["Turf-A"]||[]).filter(c => !specialCoachesHour.has(c));
+      if (available.length > 0) {
+        const moveUp = available[0];
+        layout["Turf-A"] = (layout["Turf-A"]||[]).filter(c => c !== moveUp);
+        if (!(layout["Rack"]||[]).includes(moveUp)) layout["Rack"] = [...(layout["Rack"]||[]), moveUp];
+      }
+    }
+  }
+
   // Deduplicate: when multiple layout rules run (e.g. low-occupancy + Wednesday 5pm rule),
   // a coach can end up in two zones simultaneously. Last modification wins — deduplicate
   // in reverse zone order so the most recently assigned zone takes priority.
@@ -2484,9 +2517,15 @@ export default function GymScheduler() {
                         const oneOnOneSlots = Array.isArray(oneOnOnes[hour]) ? oneOnOnes[hour] : [];
                         const oneOnOneCoaches = oneOnOneSlots.filter(s => s.coachLocked && s.coach).map(s => s.coach.toLowerCase());
                         const foundationsCoach = cfg.foundations?.[hour];
+                        const breakCoachesThisHour = new Set(
+                          Object.entries(cfg.breakAt || {})
+                            .filter(([, hrs]) => hrs.includes(hour))
+                            .map(([c]) => c)
+                        );
                         const effectiveCoachesList = getCoaches(hour, zone).filter(({ coach }) => {
                           if (coach === "Andrew" && asmtCount > 0) return false;
                           if (oneOnOneCoaches.includes(coach.toLowerCase())) return false;
+                          if (breakCoachesThisHour.has(coach)) return false; // hide break coaches — they have no members
                           // When assessment active + foundations in Turf-A: remove non-foundations coaches from Turf-A
                           if (zone === "Turf-A" && asmtCount > 0 && foundationsCoach && coach !== foundationsCoach) {
                             const turfACoaches = getCoaches(hour, "Turf-A");
