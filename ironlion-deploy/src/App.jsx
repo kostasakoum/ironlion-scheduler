@@ -2711,23 +2711,24 @@ export default function GymScheduler() {
                                         setCarlsenResolved(prev => ({ ...prev, [cKey]: { display, info, mem } }));
                                         setCarlsenNames(prev => ({ ...prev, [cKey]: display }));
                                         setCarlsenSuggOpen(prev => ({ ...prev, [cKey]: false }));
-                                        // Re-run assignment for this hour with Carlsen resolved as a real member
+                                        // Re-run assignment for this hour with Carlsen resolved as a real member.
+                                        // Only include floor members (exclude inferno, open gym, nutrition, late cancel, BIM)
+                                        // so special classes don't get incorrectly treated as regular floor members.
                                         if (entries) {
                                           try {
-                                            const hourEntries = entries.filter(e => e.hour === hour).map(e => {
-                                              if (e.firstName.toLowerCase() === "christopher" && e.lastName.toLowerCase() === "carlsen") {
-                                                return { ...e, firstName: mem.firstName, lastName: mem.lastName, isCarlsen: true, wasResolved: true };
-                                              }
-                                              return e;
-                                            });
+                                            const hourEntries = entries
+                                              .filter(e => e.hour === hour && !e.isInferno && !e.isOpenGym && !e.isNutritionSeminar && !e.isBodiesInMotion && !e.isLateCancel)
+                                              .map(e => {
+                                                if (e.firstName.toLowerCase() === "christopher" && e.lastName.toLowerCase() === "carlsen") {
+                                                  return { ...e, firstName: mem.firstName, lastName: mem.lastName, isCarlsen: false, wasResolved: true };
+                                                }
+                                                return e;
+                                              });
                                             const currentCoachLayout = {};
                                             ZONES.forEach(z => { currentCoachLayout[z] = getCoaches(hour, z).map(c => c.coach || c); });
                                             const reassigned = assignMembersToLayout(day, hour, hourEntries, currentCoachLayout);
-                                            Object.keys(reassigned).forEach(z => {
-                                              reassigned[z] = reassigned[z].map(item =>
-                                                item.rawName === `${mem.firstName} ${mem.lastName}` ? { ...item, isCarlsen: true, display } : item
-                                              );
-                                            });
+                                            // Do NOT set isCarlsen on the resolved item — it's now a regular member
+                                            // and we don't want the type-in placeholder to reappear if the member moves zones.
                                             setOverrides(prev => ({ ...prev, [hour]: reassigned }));
                                           } catch(err) {
                                             console.warn("Carlsen reassignment failed:", err);
