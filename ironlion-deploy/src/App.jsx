@@ -7,6 +7,7 @@ const MEMBERS_FALLBACK = [{"firstName":"Vivian","lastName":"Mavromoustakos","coa
 // so they never disappear once fresh data loads.
 const EXTRA_MEMBERS = [
   { firstName: "Christine", lastName: "Carlsen", coach: "Hayley" },
+  { firstName: "Elizabeth", lastName: "Carlsen", coach: "Hayley" },
 ];
 
 let _memberList = MEMBERS_FALLBACK;
@@ -691,7 +692,14 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   });
   // When Andrew is doing an assessment, mark him busy so his floor members
   // are redistributed to other coaches rather than staying orphaned in Rack.
-  if (assessmentActive && (layout["Rack"]||[]).includes("Andrew")) busy.add("Andrew");
+  if (assessmentActive) {
+    const andrewAbsent = absentSet?.has("Andrew");
+    if (!andrewAbsent && (layout["Rack"]||[]).includes("Andrew")) {
+      busy.add("Andrew"); // Andrew does assessment normally
+    } else if (andrewAbsent && (layout["Rack"]||[]).includes("Kostas")) {
+      busy.add("Kostas"); // Kostas covers assessment when Andrew is out
+    }
+  }
 
   // Thursday PM: Nick goes to Back only when effective floor members > 9.
   // Use effective count (exclude late cancels, open gym, nutrition) so late cancels
@@ -771,9 +779,17 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
 
   // When Andrew is in an assessment, move Ricky from Back to Rack
   // so Kostas isn't alone on the floor handling a full Rack load.
-  if (assessmentActive && (layout["Rack"]||[]).includes("Andrew") && (layout["Back"]||[]).includes("Ricky")) {
-    layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
-    if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
+  // When Andrew is in assessment, move Ricky from Back to Rack.
+  // When Andrew is absent and Kostas covers assessment, same applies.
+  if (assessmentActive) {
+    const andrewAbsent = absentSet?.has("Andrew");
+    const assessCoachInRack = andrewAbsent
+      ? (layout["Rack"]||[]).includes("Kostas")
+      : (layout["Rack"]||[]).includes("Andrew");
+    if (assessCoachInRack && (layout["Back"]||[]).includes("Ricky")) {
+      layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
+      if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
+    }
   }
 
   // Wednesday PM 5pm: when fewer than 7 floor members (excluding foundations),
@@ -1635,7 +1651,7 @@ export default function GymScheduler() {
         const isInferno = desc.toLowerCase().includes("inferno");
         const isBodiesInMotion = desc.toLowerCase().includes("bodies in motion");
         const isNutritionSeminar = desc.toLowerCase().includes("nutrition");
-        const isCarlsen = firstName.toLowerCase() === "christopher" && lastName.toLowerCase() === "carlsen";
+        const isCarlsen = ["christopher","chris"].includes(firstName.toLowerCase()) && lastName.toLowerCase() === "carlsen";
         if (firstName) parsed.push({ hour, firstName, lastName, isFoundations, isOpenGym, isInferno, isBodiesInMotion, isNutritionSeminar, isCarlsen, isLateCancel });
       }
       if (parsed.length===0) { setError("No sign-ups found. Use the 'Schedule at a Glance' report."); return; }
@@ -2434,10 +2450,11 @@ export default function GymScheduler() {
                         if (zone === "Turf-B" && getAssessmentCount(hour) > 0) {
                           const asmtCount2 = getAssessmentCount(hour);
                           const asmtNames2 = assessmentNames[hour] || {};
+                          const asmtCoach = absentCoaches.has("Andrew") ? "Kostas" : "Andrew";
                           return (
                             <td key={hour} style={{ border:`1px solid ${t.border}`, background:t.surface, verticalAlign:"top", padding:0 }}>
                               <div style={{ padding:"3px 8px 2px", borderBottom:`1px solid ${t.border}`, background:t.zoneHeader }}>
-                                <span style={{ fontSize:15, fontWeight:700, color:COACH_COLORS["Andrew"]||"#059669" }}>Andrew</span>
+                                <span style={{ fontSize:15, fontWeight:700, color:COACH_COLORS[asmtCoach]||"#059669" }}>{asmtCoach}</span>
                               </div>
                               <div style={{ padding:"4px 8px 6px" }}>
                                 {Array.from({ length: asmtCount2 }).map((_, idx) => {
@@ -2458,7 +2475,7 @@ export default function GymScheduler() {
                                           onClick={() => setAssessmentName(hour, lockedKey, false)}>
                                           <span style={{ fontSize:13, color:t.dim }}>·</span>
                                           {val}
-                                          <span style={{ fontSize:10, color:COACH_COLORS["Andrew"]||"#059669", fontWeight:700, marginLeft:2 }}>A</span>
+                                          <span style={{ fontSize:10, color:COACH_COLORS[asmtCoach]||"#059669", fontWeight:700, marginLeft:2 }}>A</span>
                                         </div>
                                       ) : (
                                         <input value={asmtNames2[idx] || ""} onChange={e => setAssessmentName(hour, idx, e.target.value)}
@@ -2523,7 +2540,11 @@ export default function GymScheduler() {
                             .map(([c]) => c)
                         );
                         const effectiveCoachesList = getCoaches(hour, zone).filter(({ coach }) => {
-                          if (coach === "Andrew" && asmtCount > 0) return false;
+                          if (asmtCount > 0) {
+                            const andrewAbsent = absentCoaches.has("Andrew");
+                            if (!andrewAbsent && coach === "Andrew") return false;
+                            if (andrewAbsent && coach === "Kostas") return false;
+                          }
                           if (oneOnOneCoaches.includes(coach.toLowerCase())) return false;
                           if (breakCoachesThisHour.has(coach)) return false; // hide break coaches — they have no members
                           // When assessment active + foundations in Turf-A: remove non-foundations coaches from Turf-A
