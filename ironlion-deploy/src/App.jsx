@@ -436,14 +436,12 @@ const DAY_CONFIG = {
 const DEFAULT_ONE_ON_ONES = {
   MondayAM: [
     { hour: 6, member: "Mike", coach: "Chris C" },
-    { hour: 6, member: "Paul", coach: "Troy" },
     { hour: 8, member: "Spiredoula", coach: "Hayley" },
     { hour: 9, member: "Matt", coach: "Chris C" },
     { hour: 10, member: "Pio", coach: "Troy" },
     { hour: 11, member: "David", coach: "Chris C" },
   ],
   WednesdayAM: [
-    { hour: 6, member: "Paul", coach: "Troy" },
     { hour: 6, member: "Mike", coach: "Chris C" },
     { hour: 7, member: "Spiredoula", coach: "Hayley" },
     { hour: 10, member: "Pio", coach: "Troy" },
@@ -883,8 +881,9 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   }
 
   // General rule: Rack must always have at least one active (non-busy, non-break) coach.
-  // If all Rack coaches are going to be busy (assessment, foundations, break),
-  // pull the first available active coach from Turf-A up to Rack.
+  // Fires when Rack is either: completely empty (e.g. Hayley absent) OR all coaches are busy.
+  // Only applies when 2+ zones have active coaches (so solo-coach hours aren't affected).
+  // Pulls 1 coach from Turf-A; if Rack would still only have 1 and Turf has 2+, pulls a 2nd.
   {
     const specialCoachesHour = new Set([
       cfg.foundations?.[hour],
@@ -894,12 +893,25 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       ...(assessmentActive ? ["Andrew"] : []),
     ].filter(Boolean));
     const rackActive = (layout["Rack"]||[]).filter(c => !specialCoachesHour.has(c));
-    if (rackActive.length === 0 && (layout["Rack"]||[]).length > 0) {
-      const available = (layout["Turf-A"]||[]).filter(c => !specialCoachesHour.has(c));
-      if (available.length > 0) {
-        const moveUp = available[0];
-        layout["Turf-A"] = (layout["Turf-A"]||[]).filter(c => c !== moveUp);
+    const activeZoneCount = ZONES.filter(z => (layout[z]||[]).some(c => !specialCoachesHour.has(c))).length;
+    if (rackActive.length === 0 && activeZoneCount >= 2) {
+      // Pull from Turf-A first, then Back if Turf is empty
+      const turfAvail = (layout["Turf-A"]||[]).filter(c => !specialCoachesHour.has(c));
+      const backAvail = (layout["Back"]||[]).filter(c => !specialCoachesHour.has(c));
+      const sources = turfAvail.length > 0 ? turfAvail : backAvail;
+      const sourceZone = turfAvail.length > 0 ? "Turf-A" : "Back";
+      if (sources.length > 0) {
+        const moveUp = sources[0];
+        layout[sourceZone] = (layout[sourceZone]||[]).filter(c => c !== moveUp);
         if (!(layout["Rack"]||[]).includes(moveUp)) layout["Rack"] = [...(layout["Rack"]||[]), moveUp];
+        // If Rack now only has 1 coach and source zone still has 2+, pull a 2nd
+        const rackAfter = (layout["Rack"]||[]).filter(c => !specialCoachesHour.has(c));
+        const sourceAfter = (layout[sourceZone]||[]).filter(c => !specialCoachesHour.has(c));
+        if (rackAfter.length === 1 && sourceAfter.length >= 2) {
+          const moveUp2 = sourceAfter[0];
+          layout[sourceZone] = (layout[sourceZone]||[]).filter(c => c !== moveUp2);
+          if (!(layout["Rack"]||[]).includes(moveUp2)) layout["Rack"] = [...(layout["Rack"]||[]), moveUp2];
+        }
       }
     }
   }
