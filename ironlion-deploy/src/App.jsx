@@ -10,6 +10,11 @@ const EXTRA_MEMBERS = [
   { firstName: "Elizabeth", lastName: "Carlsen", coach: "Hayley" },
 ];
 
+// ─── TEMPORARY ABSENCES ───────────────────────────────────────────────────────
+// Add coach names here to auto-mark them out on every shift they're scheduled for.
+// To undo: remove the name from this array and re-upload to GitHub.
+const AUTO_ABSENT_COACHES = ["Hayley"];
+
 let _memberList = MEMBERS_FALLBACK;
 
 // ─── NICKNAMES & DISPLAY OVERRIDES ───────────────────────────────────────────
@@ -1520,6 +1525,10 @@ export default function GymScheduler() {
     setIsBlankTemplate(false);
     const cfg = DAY_CONFIG[activeDay];
 
+    // Auto-absent coaches (e.g. Hayley on leave) — only apply when scheduled for this day
+    const autoAbsent = new Set(AUTO_ABSENT_COACHES.filter(c => cfg.coaches?.[c]));
+    if (autoAbsent.size > 0) setAbsentCoaches(autoAbsent);
+
     // Determine assessment-active hours from calendar data for this date, ahead of building schedule
     let assessmentActiveByHour = {};
     if (dateObj) {
@@ -1535,7 +1544,13 @@ export default function GymScheduler() {
     cfg.hours.forEach(h => {
       const hourMembers = parsed.filter(e => e.hour === h);
       const total = hourMembers.length;
-      result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, undefined, undefined, undefined, undefined, !!assessmentActiveByHour[h]), total };
+      // Build layout with auto-absent coaches removed, matching what clicking their name does
+      let baseLayout;
+      if (autoAbsent.size > 0) {
+        baseLayout = JSON.parse(JSON.stringify(cfg.zoneLayout[h] || {}));
+        ZONES.forEach(z => { baseLayout[z] = (baseLayout[z] || []).filter(c => !autoAbsent.has(c)); });
+      }
+      result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, baseLayout, undefined, autoAbsent.size > 0, autoAbsent, !!assessmentActiveByHour[h]), total };
     });
     setSchedule(result);
     applyDefaultOneOnOnes(activeDay, result);
@@ -1712,6 +1727,10 @@ export default function GymScheduler() {
       const activeDay = detectedDay && DAY_CONFIG[detectedDay] ? detectedDay : day;
       const cfg = DAY_CONFIG[activeDay];
 
+      // Auto-absent coaches — only apply when scheduled for this day
+      const autoAbsent = new Set(AUTO_ABSENT_COACHES.filter(c => cfg.coaches?.[c]));
+      if (autoAbsent.size > 0) setAbsentCoaches(autoAbsent);
+
       // Determine assessment-active hours from calendar data for this date
       let assessmentActiveByHour = {};
       const dateStrPre = dateObj ? dateObj.toISOString().split("T")[0] : null;
@@ -1725,7 +1744,12 @@ export default function GymScheduler() {
       cfg.hours.forEach(h => {
         const hourMembers = parsed.filter(e => e.hour===h);
         const total = hourMembers.length;
-        result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, undefined, undefined, undefined, undefined, !!assessmentActiveByHour[h]), total };
+        let baseLayout;
+        if (autoAbsent.size > 0) {
+          baseLayout = JSON.parse(JSON.stringify(cfg.zoneLayout[h] || {}));
+          ZONES.forEach(z => { baseLayout[z] = (baseLayout[z] || []).filter(c => !autoAbsent.has(c)); });
+        }
+        result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, baseLayout, undefined, autoAbsent.size > 0, autoAbsent, !!assessmentActiveByHour[h]), total };
       });
       setSchedule(result);
       applyDefaultOneOnOnes(activeDay, result);
