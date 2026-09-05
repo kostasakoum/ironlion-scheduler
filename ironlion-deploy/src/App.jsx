@@ -271,19 +271,19 @@ const DAY_CONFIG = {
     hours: [8,9,10,11,12],
     coaches: {
       Kostas: { start:8, end:12 }, Andrew: { start:8, end:13 },
-      Hayley: { start:9, end:13 }, Elijah: { start:9, end:13 },
+      Elijah: { start:9, end:13 },
     },
     zoneLayout: {
-      8:  { Rack:["Kostas"], "Turf-A":["Andrew"], "Turf-B":[], Back:[] },
-      9:  { Rack:["Kostas","Elijah"], "Turf-A":[], "Turf-B":["Hayley"], Back:["Andrew"] },
-      10: { Rack:["Kostas","Elijah"], "Turf-A":["Andrew"], "Turf-B":[], Back:["Hayley"] },
-      11: { Rack:["Kostas","Elijah"], "Turf-A":[], "Turf-B":["Hayley"], Back:["Andrew"] },
-      12: { Rack:["Elijah","Andrew"], "Turf-A":["Hayley"], "Turf-B":[], Back:[] },
+      8:  { Rack:["Kostas","Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
+      9:  { Rack:["Kostas","Andrew"], "Turf-A":["Elijah"], "Turf-B":[], Back:[] },
+      10: { Rack:["Kostas","Elijah"], "Turf-A":[], "Turf-B":[], Back:["Andrew"] },
+      11: { Rack:["Kostas","Andrew"], "Turf-A":[], "Turf-B":["Elijah"], Back:[] },
+      12: { Rack:["Elijah","Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 10:"Andrew" },
-    foundationsFallback: ["Kostas","Elijah","Hayley"],
-    inferno: { 9:"Hayley", 11:"Hayley" },
-    bodiesInMotion: { 8:"Andrew" },
+    foundationsFallback: ["Kostas","Elijah"],
+    foundationsZoneOverride: { 10: () => "Back" },
+    inferno: { 11:"Elijah" },
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [12] },
   },
@@ -436,13 +436,13 @@ const DAY_CONFIG = {
 const DEFAULT_ONE_ON_ONES = {
   MondayAM: [
     { hour: 6, member: "Mike", coach: "Chris C" },
-    { hour: 8, member: "Spiredoula", coach: "Hayley" },
+    { hour: 6, member: "Paul", coach: "Chris E" },
     { hour: 9, member: "Matt", coach: "Chris C" },
     { hour: 10, member: "Pio", coach: "Troy" },
     { hour: 11, member: "David", coach: "Chris C" },
   ],
   WednesdayAM: [
-    { hour: 6, member: "Mike", coach: "Chris C" },
+    { hour: 6, member: "Paul", coach: "Chris E" },
     { hour: 7, member: "Spiredoula", coach: "Hayley" },
     { hour: 10, member: "Pio", coach: "Troy" },
   ],
@@ -452,9 +452,7 @@ const DEFAULT_ONE_ON_ONES = {
     { hour: 10, member: "Pio", coach: "Troy" },
     { hour: 11, member: "David", coach: "Chris C" },
   ],
-  Saturday: [
-    { hour: 12, member: "Aurora", coach: "Andrew" },
-  ],
+  Saturday: [],
 };
 
 const ZONES = ["Rack", "Turf-A", "Turf-B", "Back"];
@@ -792,6 +790,17 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     if (assessCoachInRack && (layout["Back"]||[]).includes("Ricky")) {
       layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
       if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
+    }
+  }
+
+  // Saturday 9am: when >10 effective floor members, move Andrew from Rack to Back.
+  // Saturday 11am: when >8 effective floor members, move Andrew from Rack to Back.
+  if (dayName === "Saturday" && (hour === 9 || hour === 11)) {
+    const effectiveFloor = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar && !m.isFoundations && !m.isInferno).length;
+    const threshold = hour === 9 ? 10 : 8;
+    if (effectiveFloor > threshold && (layout["Rack"]||[]).includes("Andrew")) {
+      layout["Rack"] = (layout["Rack"]||[]).filter(c => c !== "Andrew");
+      if (!(layout["Back"]||[]).includes("Andrew")) layout["Back"] = [...(layout["Back"]||[]), "Andrew"];
     }
   }
 
