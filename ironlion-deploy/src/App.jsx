@@ -375,7 +375,7 @@ const DAY_CONFIG = {
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
       10: { Rack:["Andrew","Ricky","Troy"], "Turf-A":[], "Turf-B":[], Back:["Hayley"] },
-      11: { Rack:["Hayley","Andrew","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
+      11: { Rack:["Andrew","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Hayley"] },
       12: { Rack:["Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 7:"Troy", 10:"Hayley" },
@@ -850,7 +850,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   const foundCoachValid = foundCoach && foundCoach !== "Chris C";
   // Weekday AM rule: 2 or fewer foundations members ALWAYS go to Turf-B — even on hours
   // that have a foundationsZoneOverride (e.g. "always Back"). 3+ members keep all existing logic below.
-  const smallGroupAlwaysTurfB = isAMDay && foundCoachValid && foundations.length > 0 && foundations.length <= 2;
+  const smallGroupAlwaysTurfB = isAMDay && foundCoachValid && foundations.length > 0 && foundations.length <= 2 && !cfg.foundationsZoneOverride?.[hour];
   const foundCoachOnTurf = foundCoachValid && !cfg.foundationsZoneOverride?.[hour];
   if (smallGroupAlwaysTurfB && !assessmentActive) {
     // Weekday AM, <=2 members: always Turf-B, regardless of zone override
