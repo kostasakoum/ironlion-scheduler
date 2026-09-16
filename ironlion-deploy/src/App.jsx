@@ -13,7 +13,7 @@ const EXTRA_MEMBERS = [
 // ─── TEMPORARY ABSENCES ───────────────────────────────────────────────────────
 // Add coach names here to auto-mark them out on every shift they're scheduled for.
 // To undo: remove the name from this array and re-upload to GitHub.
-const AUTO_ABSENT_COACHES = ["Hayley"];
+const AUTO_ABSENT_COACHES = [];
 
 let _memberList = MEMBERS_FALLBACK;
 
@@ -795,10 +795,11 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
 
   // Saturday 9am: when >10 effective floor members, move Andrew from Rack to Back.
   // Saturday 11am: when >8 effective floor members, move Andrew from Rack to Back.
+  // Use total (raw sign-ins minus late cancels/open gym) to match what the header shows.
   if (dayName === "Saturday" && (hour === 9 || hour === 11)) {
-    const effectiveFloor = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar && !m.isFoundations && !m.isInferno).length;
+    const signedIn = members.filter(m => !m.isLateCancel && !m.isOpenGym).length;
     const threshold = hour === 9 ? 10 : 8;
-    if (effectiveFloor > threshold && (layout["Rack"]||[]).includes("Andrew")) {
+    if (signedIn > threshold && (layout["Rack"]||[]).includes("Andrew")) {
       layout["Rack"] = (layout["Rack"]||[]).filter(c => c !== "Andrew");
       if (!(layout["Back"]||[]).includes("Andrew")) layout["Back"] = [...(layout["Back"]||[]), "Andrew"];
     }
