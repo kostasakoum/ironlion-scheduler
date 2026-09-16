@@ -366,22 +366,21 @@ const DAY_CONFIG = {
     hours: [6,7,8,9,10,11,12],
     coaches: {
       "Chris C": { start:6, end:11 }, Ricky: { start:6, end:12 },
-      Hayley: { start:6, end:9 }, Troy: { start:6, end:12 },
+      Hayley: { start:6, end:12 }, Troy: { start:6, end:12 },
       Andrew: { start:10, end:13 },
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       7:  { Rack:["Hayley","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Chris C","Troy"] },
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
-      9:  { Rack:["Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
-      10: { Rack:["Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Troy"] },
-      11: { Rack:["Andrew","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
+      9:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
+      10: { Rack:["Hayley","Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Troy"] },
+      11: { Rack:["Hayley","Andrew","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
       12: { Rack:["Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 7:"Troy", 10:"Troy" },
     foundationsFallback: ["Troy","Elijah","Nick","Hayley","Andrew"],
     foundationsZoneOverride: { 10: () => "Back" },
-    bodiesInMotion: { 7:"Chris C" },
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: { Back: [9, 12] },
   },
@@ -488,7 +487,6 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
   const layout = customLayout;
   const foundCoach = cfg.foundations?.[hour];
   const infernoCoach = cfg.inferno?.[hour];
-  const bodiesCoach = cfg.bodiesInMotion?.[hour];
   const total = members.length;
 
   const busy = new Set();
@@ -496,7 +494,6 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
   // Only mark foundations coach as busy if they're actually in the layout
   if (foundCoach && hasFoundations && !foundCoachAbsent) busy.add(foundCoach);
   if (infernoCoach) busy.add(infernoCoach);
-  if (bodiesCoach) busy.add(bodiesCoach);
 
   const fullLayout = {};
   ZONES.forEach(z => { fullLayout[z] = [...(layout[z] || [])]; });
@@ -677,7 +674,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   })();
   const foundCoachAbsent = false; // resolved above — foundCoach is always someone in the layout
   const infernoCoach = cfg.inferno?.[hour];
-  const bodiesCoach = cfg.bodiesInMotion?.[hour];
 
   // Determine busy coaches
   const busy = new Set();
@@ -685,7 +681,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   // Only mark foundations coach as busy if they're actually in the layout
   if (foundCoach && hasFoundations && !foundCoachAbsent) busy.add(foundCoach);
   if (infernoCoach) busy.add(infernoCoach);
-  if (bodiesCoach) busy.add(bodiesCoach);
   // Mark break coaches as busy — they show on schedule but get no members
   const breakCoaches = cfg.breakAt || {};
   Object.entries(breakCoaches).forEach(([coach, hours]) => {
@@ -735,11 +730,11 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
 
   // Low-occupancy rule: ≤4 floor members → consolidate all non-special coaches to Rack.
   // "Special" coaches (foundations, inferno, BIM, break) stay in their designated zones.
-  const floorTotal = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar && !m.isInferno && !m.isBodiesInMotion && !m.isFoundations).length;
+  const floorTotal = members.filter(m => !m.isLateCancel && !m.isOpenGym && !m.isNutritionSeminar && !m.isInferno && !m.isFoundations).length;
   if (floorTotal <= 4) {
     const breakCoachNames = new Set(Object.entries(cfg.breakAt || {}).filter(([, hrs]) => hrs.includes(hour)).map(([c]) => c));
     const specialCoaches = new Set([
-      cfg.foundations?.[hour], cfg.inferno?.[hour], cfg.bodiesInMotion?.[hour],
+      cfg.foundations?.[hour], cfg.inferno?.[hour],
       ...breakCoachNames
     ].filter(Boolean));
     // Collect all floor coaches (non-special) across all zones
@@ -845,7 +840,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
   }
 
-  const semi = members.filter(m => !m.isFoundations && !m.isOpenGym && !m.isInferno && !m.isBodiesInMotion && !m.isNutritionSeminar && !m.isLateCancel);
+  const semi = members.filter(m => !m.isFoundations && !m.isOpenGym && !m.isInferno && !m.isNutritionSeminar && !m.isLateCancel);
   const foundations = members.filter(m => m.isFoundations);
 
   // If foundations coach is not Chris C and <=2 foundations members, move to Turf-B
@@ -898,7 +893,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     const specialCoachesHour = new Set([
       cfg.foundations?.[hour],
       cfg.inferno?.[hour],
-      cfg.bodiesInMotion?.[hour],
       ...Object.entries(cfg.breakAt || {}).filter(([,hrs]) => hrs.includes(hour)).map(([c]) => c),
       ...(assessmentActive ? ["Andrew"] : []),
     ].filter(Boolean));
@@ -1205,12 +1199,6 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
           ? [{ display:`Inferno (${infernoCount})`, isFoundations:true, isClassCount:true }]
           : [{ display:"Inferno", isFoundations:true, isClassCount:true }];
       }
-      if (isBusy && c === bodiesCoach) {
-        const bodiesCount = members.filter(m => m.isBodiesInMotion).length;
-        foundItems = bodiesCount > 0
-          ? [{ display:`Bodies in Motion (${bodiesCount})`, isFoundations:true, isClassCount:true }]
-          : [{ display:"Bodies in Motion", isFoundations:true, isClassCount:true }];
-      }
       return { coach: c, busy: isBusy, items: [...items, ...foundItems] };
     });
     zoneResult[z] = { coaches: coachSlots };
@@ -1230,7 +1218,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     zoneResult["Back"] = { coaches: [{ coach: "Open Gym", busy: false, items: ogItems }], isOpenGymHour: true };
   }
 
-  return { zoneResult, foundCoach, infernoCoach, bodiesCoach, busy, openGymMembers };
+  return { zoneResult, foundCoach, infernoCoach, busy, openGymMembers };
 }
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
@@ -1293,7 +1281,7 @@ export default function GymScheduler() {
   const [waitlist, setWaitlist] = useState({});
   // freeTypeMembers[hour][zone] = [ { name, locked } ] — manually typed members not in DB
   const [freeTypeMembers, setFreeTypeMembers] = useState({});
-  // classLabelZone[hour][coach] = zone — overrides which zone shows the Bodies/Inferno label
+  // classLabelZone[hour][coach] = zone — overrides which zone shows the Inferno label
   const [classLabelZone, setClassLabelZone] = useState({});
   // absentCoaches = Set of coach names removed from today's shift
   const [absentCoaches, setAbsentCoaches] = useState(new Set());
@@ -1686,10 +1674,9 @@ export default function GymScheduler() {
         const isFoundations = desc.toLowerCase().includes("foundation");
         const isOpenGym = desc.toLowerCase().includes("open gym");
         const isInferno = desc.toLowerCase().includes("inferno");
-        const isBodiesInMotion = desc.toLowerCase().includes("bodies in motion");
         const isNutritionSeminar = desc.toLowerCase().includes("nutrition");
         const isCarlsen = ["christopher","chris"].includes(firstName.toLowerCase()) && lastName.toLowerCase() === "carlsen";
-        if (firstName) parsed.push({ hour, firstName, lastName, isFoundations, isOpenGym, isInferno, isBodiesInMotion, isNutritionSeminar, isCarlsen, isLateCancel });
+        if (firstName) parsed.push({ hour, firstName, lastName, isFoundations, isOpenGym, isInferno, isNutritionSeminar, isCarlsen, isLateCancel });
       }
       if (parsed.length===0) { setError("No sign-ups found. Use the 'Schedule at a Glance' report."); return; }
       // Auto-detect day of week from the file's date column
@@ -2227,12 +2214,11 @@ export default function GymScheduler() {
               }
               setCoachOverrides(prev => ({ ...prev, [hour]: newCoachOverride }));
 
-              // If this coach is running Inferno or Bodies in Motion this hour,
+              // If this coach is running Inferno this hour,
               // move their class label along with them to the new zone
               const cfgForClass = DAY_CONFIG[day];
               const hourInfernoCoach = cfgForClass?.inferno?.[hour];
-              const hourBodiesCoach = cfgForClass?.bodiesInMotion?.[hour];
-              if (coachName === hourInfernoCoach || coachName === hourBodiesCoach) {
+              if (coachName === hourInfernoCoach) {
                 setClassLabelZone(prev => ({ ...prev, [hour]: { ...(prev[hour] || {}), [coachName]: toZone } }));
               }
 
@@ -2460,7 +2446,7 @@ export default function GymScheduler() {
                     {cfg.hours.map(hour => {
                       const h = schedule[hour];
                       const baseTotal = h?.total ?? 0;
-                      const classMembers = entries ? entries.filter(e => e.hour === hour && (e.isInferno || e.isBodiesInMotion || e.isNutritionSeminar || e.isLateCancel)).length : 0;
+                      const classMembers = entries ? entries.filter(e => e.hour === hour && (e.isInferno || e.isNutritionSeminar || e.isLateCancel)).length : 0;
                       const ogCount = entries ? entries.filter(e => e.hour === hour && e.isOpenGym).length : 0;
                       const wlCount = (waitlist[hour]||[]).filter(e => e.resolved).length;
                       const total = baseTotal - classMembers - ogCount + wlCount;
@@ -2490,7 +2476,7 @@ export default function GymScheduler() {
                       {cfg.hours.map(hour => {
                         const h = schedule[hour];
                         if (!h) return <td key={hour} style={{ border:`1px solid ${t.border}`, background:t.surface }} />;
-                        const { zoneResult, foundCoach, infernoCoach, bodiesCoach } = h;
+                        const { zoneResult, foundCoach, infernoCoach } = h;
                         let zd = zoneResult[zone];
                         // Assessment in Turf-B takes priority — render before empty zone check
                         if (zone === "Turf-B" && getAssessmentCount(hour) > 0) {
@@ -2719,15 +2705,13 @@ export default function GymScheduler() {
                                   );
                                 })()}
 
-                                {/* Bodies in Motion / Inferno label — draggable, respects classLabelZone override */}
+                                {/* Inferno label — draggable, respects classLabelZone override */}
                                 {(() => {
-                                  const busyCoach = bodiesCoach || infernoCoach;
+                                  const busyCoach = infernoCoach;
                                   if (!busyCoach) return null;
                                   // Check if this coach's class label should show in this zone
                                   // Priority: manual drag override → config zone → coach's busy zone
-                                  const configZone = bodiesCoach
-                                    ? cfg.bodiesInMotionZone?.[hour]
-                                    : cfg.infernoZone?.[hour];
+                                  const configZone = cfg.infernoZone?.[hour];
                                   const labelZone = classLabelZone[hour]?.[busyCoach] ||
                                     configZone ||
                                     ZONES.find(z => schedule[hour]?.zoneResult?.[z]?.coaches?.some(s => s.coach === busyCoach && s.busy));
@@ -2735,10 +2719,9 @@ export default function GymScheduler() {
                                   const zoneCoachSlots = zd?.coaches || [];
                                   // Find the busy coach slot anywhere in the schedule (label may have moved)
                                   const slot = ZONES.reduce((found, z) => found ||
-                                    schedule[hour]?.zoneResult?.[z]?.coaches?.find(s => s.busy && (s.coach === bodiesCoach || s.coach === infernoCoach)),
+                                    schedule[hour]?.zoneResult?.[z]?.coaches?.find(s => s.busy && s.coach === infernoCoach),
                                   null);
-                                  const isBodies = !!bodiesCoach;
-                                  const label = slot?.items?.[0]?.display || (isBodies ? "Bodies in Motion" : "Inferno");
+                                  const label = slot?.items?.[0]?.display || "Inferno";
                                   return (
                                     <div
                                       draggable
@@ -2755,7 +2738,7 @@ export default function GymScheduler() {
 
                                 {/* Members — draggable */}
                                 <div style={{ padding:"3px 8px 4px", minHeight:24 }}>
-                                  {effectiveItems.filter(m => !m.isClassCount).length === 0 && !bodiesCoach && !infernoCoach && !hasActiveOneOnOneInZone && <div style={{ fontSize:10, color:t.dim, fontStyle:"italic" }}>—</div>}
+                                  {effectiveItems.filter(m => !m.isClassCount).length === 0 && !infernoCoach && !hasActiveOneOnOneInZone && <div style={{ fontSize:10, color:t.dim, fontStyle:"italic" }}>—</div>}
                                   {effectiveItems.filter(m => !m.isClassCount).map((m, i) => {
                                     if (m.isCarlsen) {
                                       const carlsenIdx = items.slice(0, i+1).filter(x => x.isCarlsen).length - 1;
@@ -2784,7 +2767,7 @@ export default function GymScheduler() {
                                         if (entries) {
                                           try {
                                             const hourEntries = entries
-                                              .filter(e => e.hour === hour && !e.isInferno && !e.isOpenGym && !e.isNutritionSeminar && !e.isBodiesInMotion && !e.isLateCancel)
+                                              .filter(e => e.hour === hour && !e.isInferno && !e.isOpenGym && !e.isNutritionSeminar && !e.isLateCancel)
                                               .map(e => {
                                                 if (e.firstName.toLowerCase() === "christopher" && e.lastName.toLowerCase() === "carlsen") {
                                                   return { ...e, firstName: mem.firstName, lastName: mem.lastName, isCarlsen: false, wasResolved: true };
