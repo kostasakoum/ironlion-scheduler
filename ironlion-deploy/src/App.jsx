@@ -371,7 +371,7 @@ const DAY_CONFIG = {
     },
     zoneLayout: {
       6:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
-      7:  { Rack:["Hayley","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Chris C","Troy"] },
+      7:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       8:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:["Chris C"] },
       9:  { Rack:["Hayley","Ricky"], "Turf-A":["Troy"], "Turf-B":[], Back:[] },
       10: { Rack:["Hayley","Andrew","Ricky"], "Turf-A":[], "Turf-B":[], Back:["Troy"] },
