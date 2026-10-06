@@ -32,7 +32,6 @@ const NICKNAMES = {
   "dennis bells": "Dennis Hruska",
   "paraskevi tzoumerkiotis": "Vicky Tzoumerkiotis", "paraskevi t": "Vicky Tzoumerkiotis",
   "christine carlsen": "Christine Carlsen", "cookie c": "Christine Carlsen",
-  "max velez": "Ethan Velez", "max v": "Ethan Velez",
 };
 const DISPLAY_NAMES = {
   "david di maggio": "Stevie D", "genevieve gonzolaz": "Genny G",
@@ -40,6 +39,7 @@ const DISPLAY_NAMES = {
   "nicolaos tzoumerkiotis": "Niko T", "phat tran": "Peter T", "bartosz herdzik": "Bart H", "sarah prewett": "Carson P",
   "vicky tzoumerkiotis": "Vicky T",
   "christine carlsen": "Cookie C",
+  "ethan velez": "Max V",
 };
 
 // Female members who skip the Hayley preference and are treated like males for assignment
