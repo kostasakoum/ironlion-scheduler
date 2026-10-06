@@ -32,6 +32,7 @@ const NICKNAMES = {
   "dennis bells": "Dennis Hruska",
   "paraskevi tzoumerkiotis": "Vicky Tzoumerkiotis", "paraskevi t": "Vicky Tzoumerkiotis",
   "christine carlsen": "Christine Carlsen", "cookie c": "Christine Carlsen",
+  "max velez": "Ethan Velez", "max v": "Ethan Velez",
 };
 const DISPLAY_NAMES = {
   "david di maggio": "Stevie D", "genevieve gonzolaz": "Genny G",
