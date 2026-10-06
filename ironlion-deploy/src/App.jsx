@@ -445,6 +445,12 @@ const DEFAULT_ONE_ON_ONES = {
     { hour: 7, member: "Spiredoula", coach: "Hayley" },
     { hour: 10, member: "Pio", coach: "Troy" },
   ],
+  ThursdayAM: [
+    { hour: 10, member: "Krissy", coach: "Troy" },
+  ],
+  Thursday: [
+    { hour: 17, member: "Aurora", coach: "Andrew" },
+  ],
   FridayAM: [
     { hour: 6, member: "Mike", coach: "Chris C" },
     { hour: 9, member: "Matt", coach: "Chris C" },
@@ -1188,7 +1194,8 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
             display: `${m.firstName} ${m.lastName[0]||"?"}`,
             isFoundations: true,
             isCarlsen: m.isCarlsen || false,
-            rawName: `${m.firstName} ${m.lastName}`
+            rawName: `${m.firstName} ${m.lastName}`,
+            isLateCancel: m.isLateCancel || false
           }));
         }
       }
@@ -2873,7 +2880,7 @@ export default function GymScheduler() {
                                   })}
 
                                   {/* Late cancels — shown with strikethrough in Rack only (excluding open gym late cancels which show in Back) */}
-                                  {zone === "Rack" && (entries||[]).filter(e => e.hour === hour && e.isLateCancel && !e.isOpenGym).map((m, i) => {
+                                  {zone === "Rack" && (entries||[]).filter(e => e.hour === hour && e.isLateCancel && !e.isOpenGym && !e.isFoundations).map((m, i) => {
                                     const info = lookupMember(m.firstName, m.lastName);
                                     const display = info ? info.display : `${m.firstName} ${m.lastName[0]||"?"}`;
                                     return (
