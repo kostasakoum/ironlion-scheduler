@@ -87,7 +87,7 @@ module.exports = async function handler(req, res) {
     ];
 
     const timeMin = new Date();
-    timeMin.setDate(timeMin.getDate() - 1);
+    timeMin.setDate(timeMin.getDate() - 30);
     const timeMax = new Date();
     timeMax.setDate(timeMax.getDate() + 60);
 
