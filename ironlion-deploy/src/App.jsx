@@ -445,12 +445,6 @@ const DEFAULT_ONE_ON_ONES = {
     { hour: 7, member: "Spiredoula", coach: "Hayley" },
     { hour: 10, member: "Pio", coach: "Troy" },
   ],
-  ThursdayAM: [
-    { hour: 10, member: "Krissy", coach: "Troy" },
-  ],
-  Thursday: [
-    { hour: 17, member: "Aurora", coach: "Andrew" },
-  ],
   FridayAM: [
     { hour: 6, member: "Mike", coach: "Chris C" },
     { hour: 9, member: "Matt", coach: "Chris C" },
@@ -1259,11 +1253,16 @@ export default function GymScheduler() {
   }, []);
   const [calendarData, setCalendarData] = useState({});
   const calendarDataRef = useRef({});
+  const calendarOneOnOnesRef = useRef({});
 
   useEffect(() => {
     fetch("/api/assessments")
       .then(r => r.ok ? r.json() : {})
       .then(data => { setCalendarData(data); calendarDataRef.current = data; })
+      .catch(() => {});
+    fetch("/api/one-on-ones")
+      .then(r => r.ok ? r.json() : {})
+      .then(data => { calendarOneOnOnesRef.current = data; })
       .catch(() => {});
   }, []);
   const [light, setLight] = useState(true);
@@ -1380,8 +1379,13 @@ export default function GymScheduler() {
   // Apply the standing default 1-on-1's for a given day onto a freshly-built schedule.
   // Mirrors the manual "lock in a 1-on-1 coach" logic: if another active coach remains
   // in that coach's zone, members simply stay with them; if not, members relocate elsewhere.
-  const applyDefaultOneOnOnes = useCallback((activeDay, scheduleResult) => {
-    const defaults = DEFAULT_ONE_ON_ONES[activeDay];
+  const applyDefaultOneOnOnes = useCallback((activeDay, scheduleResult, dateStr) => {
+    const staticDefaults = DEFAULT_ONE_ON_ONES[activeDay] || [];
+    const calendarEntries = (dateStr && calendarOneOnOnesRef.current[dateStr]) || [];
+    // Merge: calendar entries override static ones for same hour+coach
+    const calKeys = new Set(calendarEntries.map(e => `${e.hour}-${e.coach}`));
+    const filteredStatic = staticDefaults.filter(d => !calKeys.has(`${d.hour}-${d.coach}`));
+    const defaults = [...filteredStatic, ...calendarEntries];
     if (!defaults || defaults.length === 0) return;
 
     const newOneOnOnes = {};
@@ -1570,10 +1574,10 @@ export default function GymScheduler() {
       result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, baseLayout, undefined, autoAbsent.size > 0, autoAbsent, !!assessmentActiveByHour[h]), total };
     });
     setSchedule(result);
-    applyDefaultOneOnOnes(activeDay, result);
+    const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
+    applyDefaultOneOnOnes(activeDay, result, dateStr);
     // Inject calendar assessments for this file's date
     if (dateObj) {
-      const dateStr = dateObj.toISOString().split("T")[0];
       if (calendarDataRef.current[dateStr]) {
         const asmts = calendarDataRef.current[dateStr];
         const newAssessments = {};
@@ -1768,10 +1772,10 @@ export default function GymScheduler() {
         result[h] = { ...buildHourAssignment(activeDay, h, hourMembers, total, baseLayout, undefined, autoAbsent.size > 0, autoAbsent, !!assessmentActiveByHour[h]), total };
       });
       setSchedule(result);
-      applyDefaultOneOnOnes(activeDay, result);
+      const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
+      applyDefaultOneOnOnes(activeDay, result, dateStr);
 
       // Auto-apply calendar assessments for this date
-      const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
       if (dateStr && calendarDataRef.current[dateStr]) {
         const asmts = calendarDataRef.current[dateStr];
         const newAssessments = {};
