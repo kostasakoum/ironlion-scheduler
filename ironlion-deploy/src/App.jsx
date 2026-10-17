@@ -631,7 +631,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
       }
     }
     if (assigned && pool[assigned]) {
-      pool[assigned].items.push({ display, noMatch: !info, matchType: info?.matchType, fuzzyScore: info?.fuzzyScore, rawName: `${member.firstName} ${member.lastName}`, isCarlsen: member.isCarlsen || false });
+      pool[assigned].items.push({ display, noMatch: !info, matchType: info?.matchType, fuzzyScore: info?.fuzzyScore, rawName: `${member.firstName} ${member.lastName}`, isCarlsen: member.isCarlsen || false, wasResolved: member.wasResolved || false });
       const z = coachZoneFn(assigned);
       if (z) zoneFill[z]++;
     }
@@ -1132,7 +1132,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
 
     if (assigned && pool[assigned]) {
-      pool[assigned].items.push({ display, noMatch: !info, matchType: info?.matchType, fuzzyScore: info?.fuzzyScore, rawName: `${member.firstName} ${member.lastName}`, isCarlsen: member.isCarlsen || false });
+      pool[assigned].items.push({ display, noMatch: !info, matchType: info?.matchType, fuzzyScore: info?.fuzzyScore, rawName: `${member.firstName} ${member.lastName}`, isCarlsen: member.isCarlsen || false, wasResolved: member.wasResolved || false });
       const z = coachZone(assigned);
       if (z) zoneFill[z]++;
     }
@@ -2877,6 +2877,7 @@ export default function GymScheduler() {
                                         <span style={{ fontSize:13, color:t.dim, flexShrink:0 }}>·</span>
                                         <span style={{ textDecoration: m.isLateCancel ? "line-through" : "none" }}>{m.display}</span>
                                         {m.isFoundations && !m.isClassCount && <span style={{ fontSize:10, color:t.foundText, fontWeight:700, marginLeft:2 }}>F</span>}
+                                        {m.wasResolved && <span style={{ fontSize:9, color:"#f59e0b", fontWeight:600, marginLeft:1 }}>c</span>}
                                       {m.isWaitlist && <span style={{ fontSize:10, color:"#0891b2", fontWeight:700, marginLeft:2 }}>W</span>}
                                       {m.isOneOnOne && m._ooCoach && <span style={{ fontSize:11, fontWeight:700, color:COACH_COLORS[m._ooCoach]||t.muted, marginLeft:2 }}>{m._ooCoach}</span>}
                                         
