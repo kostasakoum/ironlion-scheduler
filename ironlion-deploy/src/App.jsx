@@ -648,6 +648,8 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
 function buildHourAssignment(dayName, hour, members, total, customLayout, mondayFallback, ignoreZoneCap, absentSet, assessmentActive) {
   const cfg = DAY_CONFIG[dayName];
   const layout = customLayout ? JSON.parse(JSON.stringify(customLayout)) : JSON.parse(JSON.stringify(cfg.zoneLayout[hour] || {}));
+  // Thursday AM assessments are run by Chris C; all other days by Andrew
+  const assessmentCoach = dayName === "ThursdayAM" ? "Chris C" : "Andrew";
   const cap = (z) => {
     if (ignoreZoneCap) return 999;
     if (z === "Turf-A") return turfACap(layout, cfg.zoneCap, assessmentActive);
@@ -687,14 +689,15 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   Object.entries(breakCoaches).forEach(([coach, hours]) => {
     if (hours.includes(hour)) busy.add(coach);
   });
-  // When Andrew is doing an assessment, mark him busy so his floor members
-  // are redistributed to other coaches rather than staying orphaned in Rack.
+  // When the assessment coach is doing an assessment, mark them busy so their floor members
+  // are redistributed to other coaches rather than staying orphaned in their zone.
   if (assessmentActive) {
-    const andrewAbsent = absentSet?.has("Andrew");
-    if (!andrewAbsent && (layout["Rack"]||[]).includes("Andrew")) {
-      busy.add("Andrew"); // Andrew does assessment normally
-    } else if (andrewAbsent && (layout["Rack"]||[]).includes("Kostas")) {
-      busy.add("Kostas"); // Kostas covers assessment when Andrew is out
+    const assessAbsent = absentSet?.has(assessmentCoach);
+    const assessInLayout = ZONES.some(z => (layout[z]||[]).includes(assessmentCoach));
+    if (!assessAbsent && assessInLayout) {
+      busy.add(assessmentCoach);
+    } else if (assessAbsent && (layout["Rack"]||[]).includes("Kostas")) {
+      busy.add("Kostas"); // Kostas covers assessment when primary assessment coach is out
     }
   }
 
@@ -774,15 +777,14 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     }
   }
 
-  // When Andrew is in an assessment, move Ricky from Back to Rack
-  // so Kostas isn't alone on the floor handling a full Rack load.
-  // When Andrew is in assessment, move Ricky from Back to Rack.
-  // When Andrew is absent and Kostas covers assessment, same applies.
-  if (assessmentActive) {
-    const andrewAbsent = absentSet?.has("Andrew");
-    const assessCoachInRack = andrewAbsent
+  // When the assessment coach is busy (in Rack on non-ThursdayAM days), move Ricky from Back to Rack
+  // so the remaining Rack coach isn't alone handling a full load.
+  // (ThursdayAM: Chris C is in Back, not Rack, so this shift doesn't apply.)
+  if (assessmentActive && assessmentCoach !== "Chris C") {
+    const assessAbsent = absentSet?.has(assessmentCoach);
+    const assessCoachInRack = assessAbsent
       ? (layout["Rack"]||[]).includes("Kostas")
-      : (layout["Rack"]||[]).includes("Andrew");
+      : (layout["Rack"]||[]).includes(assessmentCoach);
     if (assessCoachInRack && (layout["Back"]||[]).includes("Ricky")) {
       layout["Back"] = (layout["Back"]||[]).filter(c => c !== "Ricky");
       if (!(layout["Rack"]||[]).includes("Ricky")) layout["Rack"] = [...(layout["Rack"]||[]), "Ricky"];
@@ -879,7 +881,8 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   const fullLayout = {};
   // When Andrew is in assessment on an AM shift, move Troy from Turf-A to Rack
   // so Rack isn't left with only a busy coach.
-  if (assessmentActive && dayName.endsWith("AM") &&
+  // (ThursdayAM uses Chris C as assessment coach who is in Back, so this doesn't apply.)
+  if (assessmentActive && assessmentCoach === "Andrew" && dayName.endsWith("AM") &&
       (layout["Rack"]||[]).includes("Andrew") &&
       (layout["Turf-A"]||[]).includes("Troy")) {
     layout["Turf-A"] = (layout["Turf-A"]||[]).filter(c => c !== "Troy");
@@ -895,7 +898,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
       cfg.foundations?.[hour],
       cfg.inferno?.[hour],
       ...Object.entries(cfg.breakAt || {}).filter(([,hrs]) => hrs.includes(hour)).map(([c]) => c),
-      ...(assessmentActive ? ["Andrew"] : []),
+      ...(assessmentActive ? [assessmentCoach] : []),
     ].filter(Boolean));
     const rackActive = (layout["Rack"]||[]).filter(c => !specialCoachesHour.has(c));
     const activeZoneCount = ZONES.filter(z => (layout[z]||[]).some(c => !specialCoachesHour.has(c))).length;
@@ -2585,9 +2588,10 @@ export default function GymScheduler() {
                         );
                         const effectiveCoachesList = getCoaches(hour, zone).filter(({ coach }) => {
                           if (asmtCount > 0) {
-                            const andrewAbsent = absentCoaches.has("Andrew");
-                            if (!andrewAbsent && coach === "Andrew") return false;
-                            if (andrewAbsent && coach === "Kostas") return false;
+                            const assessCoachForDay = day === "ThursdayAM" ? "Chris C" : "Andrew";
+                            const assessAbsentForDay = absentCoaches.has(assessCoachForDay);
+                            if (!assessAbsentForDay && coach === assessCoachForDay) return false;
+                            if (assessAbsentForDay && coach === "Kostas") return false;
                           }
                           if (oneOnOneCoaches.includes(coach.toLowerCase())) return false;
                           if (breakCoachesThisHour.has(coach)) return false; // hide break coaches — they have no members
