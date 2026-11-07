@@ -645,7 +645,7 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
   return result;
 }
 
-function buildHourAssignment(dayName, hour, members, total, customLayout, mondayFallback, ignoreZoneCap, absentSet, assessmentActive) {
+function buildHourAssignment(dayName, hour, members, total, customLayout, mondayFallback, ignoreZoneCap, absentSet, assessmentActive, replacementsMap = {}) {
   const cfg = DAY_CONFIG[dayName];
   const layout = customLayout ? JSON.parse(JSON.stringify(customLayout)) : JSON.parse(JSON.stringify(cfg.zoneLayout[hour] || {}));
   // Thursday AM assessments are run by Chris C; all other days by Andrew
@@ -676,7 +676,16 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     return baseFounds;
   })();
   const foundCoachAbsent = false; // resolved above — foundCoach is always someone in the layout
-  const infernoCoach = cfg.inferno?.[hour];
+  // If the config inferno coach is not in this layout (absent/subbed), their sub inherits the class
+  const infernoCoach = (() => {
+    const base = cfg.inferno?.[hour];
+    if (!base) return null;
+    const allInLayout = ZONES.flatMap(z => layout[z] || []);
+    if (allInLayout.includes(base)) return base;
+    const sub = replacementsMap?.[base];
+    if (sub && allInLayout.includes(sub)) return sub;
+    return base; // keep original as fallback (renders as absent/busy)
+  })();
 
   // Determine busy coaches
   const busy = new Set();
@@ -1373,7 +1382,7 @@ export default function GymScheduler() {
         }
       }
 
-      result[h] = { ...buildHourAssignment(currentDay, h, hourMembers, total, baseLayout, mondayFallbackThisHour, true, absent, !!(assessments[h] > 0)), total };
+      result[h] = { ...buildHourAssignment(currentDay, h, hourMembers, total, baseLayout, mondayFallbackThisHour, true, absent, !!(assessments[h] > 0), replacements), total };
     });
     setSchedule(result);
     setOverrides({});
