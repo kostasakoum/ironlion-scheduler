@@ -2015,6 +2015,8 @@ export default function GymScheduler() {
               const targetDate = new Date(today);
               targetDate.setDate(today.getDate() + diff);
               setFileDate(targetDate);
+              const targetDateStr = targetDate.toISOString().split("T")[0];
+              fileDateRef.current = targetDateStr;
               setDay(activeDay);
               setEntries([]);
               setOverrides({});
@@ -2039,7 +2041,7 @@ export default function GymScheduler() {
                 result[h] = { ...buildHourAssignment(activeDay, h, [], 0), total: 0 };
               });
               setSchedule(result);
-              applyDefaultOneOnOnes(activeDay, result);
+              applyDefaultOneOnOnes(activeDay, result, targetDateStr);
               setBlankStep(null);
               setBlankDay(null);
               setTimeout(() => window.print(), 300);
