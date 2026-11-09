@@ -2902,8 +2902,7 @@ export default function GymScheduler() {
                                         }}
                                         onDragEnd={(e) => { e.currentTarget.style.opacity = "1"; }}
                                         style={{ fontSize:14, padding:"3px 0", cursor: m.isLateCancel ? "default" : "grab", userSelect:"none",
-                                          color: m.isLateCancel ? t.dim : m.isFoundations ? t.foundText : m.noMatch ? t.noMatchText : t.chipText,
-                                          opacity: m.isLateCancel ? 0.6 : 1,
+                                          color: m.isFoundations ? t.foundText : m.noMatch ? t.noMatchText : t.chipText,
                                           display:"flex", alignItems:"center", gap:3 }}>
                                         <span style={{ fontSize:13, color:t.dim, flexShrink:0 }}>·</span>
                                         <span style={{ textDecoration: m.isLateCancel ? "line-through" : "none" }}>{m.display}</span>
@@ -2921,7 +2920,7 @@ export default function GymScheduler() {
                                     const info = lookupMember(m.firstName, m.lastName);
                                     const display = info ? info.display : `${m.firstName} ${m.lastName[0]||"?"}`;
                                     return (
-                                      <div key={`lc-${i}`} style={{ fontSize:13, padding:"2px 0", display:"flex", alignItems:"center", gap:3, color:t.dim, opacity:0.6 }}>
+                                      <div key={`lc-${i}`} style={{ fontSize:13, padding:"2px 0", display:"flex", alignItems:"center", gap:3, color:t.chipText }}>
                                         <span style={{ fontSize:12, color:t.dim, flexShrink:0 }}>·</span>
                                         <span style={{ textDecoration:"line-through" }}>{display}</span>
                                       </div>
