@@ -2905,7 +2905,7 @@ export default function GymScheduler() {
                                           color: m.isFoundations ? t.foundText : m.noMatch ? t.noMatchText : t.chipText,
                                           display:"flex", alignItems:"center", gap:3 }}>
                                         <span style={{ fontSize:13, color:t.dim, flexShrink:0 }}>·</span>
-                                        <span style={{ textDecoration: m.isLateCancel ? "line-through" : "none" }}>{m.display}</span>
+                                        <span style={{ textDecoration: m.isLateCancel ? "line-through" : "none", ...(m.isLateCancel ? { border:`1px solid ${t.chipText}`, borderRadius:999, padding:"1px 7px", lineHeight:1.4 } : {}) }}>{m.display}</span>
                                         {m.isFoundations && !m.isClassCount && <span style={{ fontSize:10, color:t.foundText, fontWeight:700, marginLeft:2 }}>F</span>}
                                         {m.wasResolved && <span style={{ fontSize:9, color:"#f59e0b", fontWeight:600, marginLeft:1 }}>c</span>}
                                       {m.isWaitlist && <span style={{ fontSize:10, color:"#0891b2", fontWeight:700, marginLeft:2 }}>W</span>}
@@ -2922,7 +2922,7 @@ export default function GymScheduler() {
                                     return (
                                       <div key={`lc-${i}`} style={{ fontSize:13, padding:"2px 0", display:"flex", alignItems:"center", gap:3, color:t.chipText }}>
                                         <span style={{ fontSize:12, color:t.dim, flexShrink:0 }}>·</span>
-                                        <span style={{ textDecoration:"line-through" }}>{display}</span>
+                                        <span style={{ textDecoration:"line-through", border:`1px solid ${t.chipText}`, borderRadius:999, padding:"1px 7px", lineHeight:1.4 }}>{display}</span>
                                       </div>
                                     );
                                   })}
