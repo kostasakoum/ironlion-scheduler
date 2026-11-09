@@ -5,7 +5,7 @@ const COACH_NAMES = ["Chris C", "Chris E", "Kostas", "Andrew", "Hayley", "Nick",
 function parseOneOnOne(summary) {
   if (!summary) return null;
   // Must contain some form of "1 on 1", "1-on-1", or "one on one"
-  if (!/1[\s-]on[\s-]1|one on one/i.test(summary)) return null;
+  if (!/1[\s-]?on[\s-]?1|one[\s-]?on[\s-]?one/i.test(summary)) return null;
 
   // Member is everything before the first " - "
   const dashIdx = summary.indexOf(" - ");

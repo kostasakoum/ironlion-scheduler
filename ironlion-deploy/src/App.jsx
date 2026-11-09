@@ -469,6 +469,10 @@ function fmt(h) {
   return h < 12 ? `${h}am` : `${h-12}pm`;
 }
 
+function getAssessmentCoach(dayName) {
+  return dayName === "ThursdayAM" ? "Chris C" : "Andrew";
+}
+
 // ─── ASSIGNMENT ENGINE ────────────────────────────────────────────────────────
 
 // Core member assignment — given a layout (zone->coach[]), assigns members using all priority rules
@@ -493,7 +497,8 @@ function assignMembersToLayout(dayName, hour, members, customLayout) {
   const busy = new Set();
   const hasFoundations = members.some(m => m.isFoundations);
   // Only mark foundations coach as busy if they're actually in the layout
-  if (foundCoach && hasFoundations && !foundCoachAbsent) busy.add(foundCoach);
+  const foundCoachInLayout = foundCoach && ZONES.some(z => (layout[z]||[]).includes(foundCoach));
+  if (foundCoachInLayout && hasFoundations) busy.add(foundCoach);
   if (infernoCoach) busy.add(infernoCoach);
 
   const fullLayout = {};
@@ -649,7 +654,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
   const cfg = DAY_CONFIG[dayName];
   const layout = customLayout ? JSON.parse(JSON.stringify(customLayout)) : JSON.parse(JSON.stringify(cfg.zoneLayout[hour] || {}));
   // Thursday AM assessments are run by Chris C; all other days by Andrew
-  const assessmentCoach = dayName === "ThursdayAM" ? "Chris C" : "Andrew";
+  const assessmentCoach = getAssessmentCoach(dayName);
   const cap = (z) => {
     if (ignoreZoneCap) return 999;
     if (z === "Turf-A") return turfACap(layout, cfg.zoneCap, assessmentActive);
@@ -684,7 +689,7 @@ function buildHourAssignment(dayName, hour, members, total, customLayout, monday
     if (allInLayout.includes(base)) return base;
     const sub = replacementsMap?.[base];
     if (sub && allInLayout.includes(sub)) return sub;
-    return base; // keep original as fallback (renders as absent/busy)
+    return null; // coach absent with no sub — hide inferno cleanly
   })();
 
   // Determine busy coaches
@@ -1267,6 +1272,7 @@ export default function GymScheduler() {
   const [calendarData, setCalendarData] = useState({});
   const calendarDataRef = useRef({});
   const calendarOneOnOnesRef = useRef({});
+  const fileDateRef = useRef(null);
 
   useEffect(() => {
     fetch("/api/assessments")
@@ -1317,12 +1323,6 @@ export default function GymScheduler() {
     const cfg = DAY_CONFIG[currentDay];
     if (!cfg) return;
 
-    // Eligible for Monday-specific fallback when a coach is removed with no replacement —
-    // but whether it actually APPLIES is decided per-hour below, based on whether that
-    // hour was genuinely affected by the absence (not just because someone, somewhere, is out).
-    const mondayFallbackEligible = currentDay === "Monday" && absent.size > 0
-      && Object.keys(replacements).filter(c => absent.has(c)).length === 0;
-
     const result = {};
     cfg.hours.forEach(h => {
       const hourMembers = currentEntries.filter(e => e.hour === h);
@@ -1366,7 +1366,8 @@ export default function GymScheduler() {
       // (a coach who was genuinely scheduled this hour is now gone) — never blanket-applied
       // to hours the absent coach wasn't even part of.
       // → Chris E covers Turf/foundations, Kostas on Rack (if not absent)
-      const mondayFallbackThisHour = mondayFallbackEligible && hourAffectedByAbsence;
+      const mondayFallbackThisHour = currentDay === "Monday" && absent.size > 0 &&
+        ZONES.some(z => (cfg.zoneLayout[h]?.[z]||[]).some(c => absent.has(c) && !replacements[c]));
       if (mondayFallbackThisHour) {
         ZONES.forEach(z => {
           baseLayout[z] = baseLayout[z].filter(c => c !== "Chris E");
@@ -1384,6 +1385,8 @@ export default function GymScheduler() {
 
       result[h] = { ...buildHourAssignment(currentDay, h, hourMembers, total, baseLayout, mondayFallbackThisHour, true, absent, !!(assessments[h] > 0), replacements), total };
     });
+    // Re-apply standing 1-on-1 defaults so they survive absence/sub toggles
+    applyDefaultOneOnOnes(currentDay, result, fileDateRef.current);
     setSchedule(result);
     setOverrides({});
     setCoachOverrides({});
@@ -1556,7 +1559,7 @@ export default function GymScheduler() {
     setAssessmentNames({});
     setPendingShift(null);
     setIsBlankTemplate(false);
-    setIsBlankTemplate(false);
+    setClassLabelZone({});
     const cfg = DAY_CONFIG[activeDay];
 
     // Auto-absent coaches (e.g. Hayley on leave) — only apply when scheduled for this day
@@ -1588,6 +1591,7 @@ export default function GymScheduler() {
     });
     setSchedule(result);
     const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
+    fileDateRef.current = dateStr;
     applyDefaultOneOnOnes(activeDay, result, dateStr);
     // Inject calendar assessments for this file's date
     if (dateObj) {
@@ -1786,6 +1790,7 @@ export default function GymScheduler() {
       });
       setSchedule(result);
       const dateStr = dateObj ? dateObj.toISOString().split("T")[0] : null;
+      fileDateRef.current = dateStr;
       applyDefaultOneOnOnes(activeDay, result, dateStr);
 
       // Auto-apply calendar assessments for this date
@@ -2006,7 +2011,7 @@ export default function GymScheduler() {
               const today = new Date();
               const todayDow = today.getDay(); // 0=Sun
               const targetDow = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"].indexOf(blankDay);
-              const diff = targetDow - todayDow;
+              const diff = ((targetDow - todayDow + 7) % 7) || 7;
               const targetDate = new Date(today);
               targetDate.setDate(today.getDate() + diff);
               setFileDate(targetDate);
@@ -2122,7 +2127,10 @@ export default function GymScheduler() {
                           }}>
                           <div style={{ width:7, height:7, borderRadius:"50%", background:COACH_COLORS[replacement]||"#888", flexShrink:0 }} />
                           <span style={{ fontSize:12, fontWeight:600, color:COACH_COLORS[replacement]||t.text }}>{replacement}</span>
-                          <span style={{ fontSize:11, color:t.muted }}>{fmt(c.start)}–{fmt(c.end)}</span>
+                          <span style={{ fontSize:11, color:t.muted }}>{(() => {
+                            const subCfg = DAY_CONFIG[day]?.coaches?.[replacement];
+                            return subCfg ? `${fmt(subCfg.start)}–${fmt(subCfg.end)}` : `${fmt(c.start)}–${fmt(c.end)}`;
+                          })()}</span>
                         </div>
                       ) : (
                         // Show dropdown to pick sub
@@ -2506,7 +2514,7 @@ export default function GymScheduler() {
                         if (zone === "Turf-B" && getAssessmentCount(hour) > 0) {
                           const asmtCount2 = getAssessmentCount(hour);
                           const asmtNames2 = assessmentNames[hour] || {};
-                          const asmtCoach = absentCoaches.has("Andrew") ? "Kostas" : "Andrew";
+                          const asmtCoach = absentCoaches.has(getAssessmentCoach(day)) ? "Kostas" : getAssessmentCoach(day);
                           return (
                             <td key={hour} style={{ border:`1px solid ${t.border}`, background:t.surface, verticalAlign:"top", padding:0 }}>
                               <div style={{ padding:"3px 8px 2px", borderBottom:`1px solid ${t.border}`, background:t.zoneHeader }}>
@@ -2596,8 +2604,8 @@ export default function GymScheduler() {
                             .map(([c]) => c)
                         );
                         const effectiveCoachesList = getCoaches(hour, zone).filter(({ coach }) => {
-                          if (asmtCount > 0) {
-                            const assessCoachForDay = day === "ThursdayAM" ? "Chris C" : "Andrew";
+                          if (asmtCount > 0 && (zone === "Turf-B" || zone === "Rack")) {
+                            const assessCoachForDay = getAssessmentCoach(day);
                             const assessAbsentForDay = absentCoaches.has(assessCoachForDay);
                             if (!assessAbsentForDay && coach === assessCoachForDay) return false;
                             if (assessAbsentForDay && coach === "Kostas") return false;
@@ -2767,7 +2775,7 @@ export default function GymScheduler() {
                                   {effectiveItems.filter(m => !m.isClassCount).map((m, i) => {
                                     if (m.isCarlsen) {
                                       const carlsenIdx = items.slice(0, i+1).filter(x => x.isCarlsen).length - 1;
-                                      const cKey = `${hour}-${zone}-${carlsenIdx}`;
+                                      const cKey = `${hour}-carlsen-${carlsenIdx}`;
                                       const cName = carlsenNames[cKey] || "";
                                       const resolved = carlsenResolved[cKey];
                                       const suggOpen = carlsenSuggOpen[cKey] && cName.length >= 2;
