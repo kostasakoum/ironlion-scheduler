@@ -1331,18 +1331,22 @@ export default function GymScheduler() {
       // Build a modified layout for this hour removing absent coaches
       const baseLayout = JSON.parse(JSON.stringify(cfg.zoneLayout[h] || {}));
       let hourAffectedByAbsence = false;
+      // Track which replacement coaches have already been placed this hour so that a
+      // sub covering two absent coaches lands only in the first (highest-priority) zone,
+      // not duplicated across both zones with the last write winning.
+      const placedReps = new Set();
       ZONES.forEach(z => {
         const toAdd = [];
         baseLayout[z] = (baseLayout[z] || []).filter(c => {
           if (absent.has(c)) {
             hourAffectedByAbsence = true;
             const rep = replacements[c];
-            if (rep && !(baseLayout[z] || []).includes(rep) && !toAdd.includes(rep)) toAdd.push(rep);
+            if (rep && !placedReps.has(rep) && !(baseLayout[z] || []).includes(rep) && !toAdd.includes(rep)) toAdd.push(rep);
             return false;
           }
           return true;
         });
-        toAdd.forEach(r => { if (!baseLayout[z].includes(r)) baseLayout[z].push(r); });
+        toAdd.forEach(r => { if (!baseLayout[z].includes(r)) { baseLayout[z].push(r); placedReps.add(r); } });
       });
 
       // If foundations coach is absent with no replacement, move best available coach into their zone
@@ -2432,11 +2436,15 @@ export default function GymScheduler() {
                 arr.splice(realIdx, 1);
                 return { ...prev, [hour]: arr.length ? arr : undefined };
               });
-              // Rebuild the schedule so the freed coach is treated as active floor again
-              // and members are redistributed across all current coaches for this day.
-              if (entries) {
-                rebuildScheduleWithCoaches(entries, day, absentCoaches, replacementCoaches);
-              }
+              // Surgically remove only the overrides for this specific hour so the freed
+              // coach is treated as active floor again — leaving all other hours' manual
+              // adjustments intact rather than wiping every override via a full rebuild.
+              setOverrides(prev => {
+                if (!prev[hour]) return prev;
+                const next = { ...prev };
+                delete next[hour];
+                return next;
+              });
             };
 
             // Assessment helpers
