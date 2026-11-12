@@ -246,8 +246,8 @@ const DAY_CONFIG = {
     },
     // 9 rule: if >9 effective, Elijah moves to Back
     nineRule: { backCoach: "Elijah", turf: "Chris E" },
-    foundations: { 17:"Elijah", 19:"Elijah" },
-    foundationsFallback: ["Andrew","Chris E","Nick","Hayley"],
+    foundations: { 17:"Chris E", 19:"Chris E" },
+    foundationsFallback: ["Andrew","Elijah","Nick","Hayley"],
     zoneCap: { Rack:7, "Turf-A":5, "Turf-B":2, Back:6 },
     openGym: {},
   },
