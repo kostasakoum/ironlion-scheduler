@@ -194,15 +194,16 @@ const DAY_CONFIG = {
     coaches: {
       Kostas: { start:16, end:21 }, Andrew: { start:16, end:20 },
       Elijah: { start:17, end:20 }, Hayley: { start:16, end:20 },
+      "Chris E": { start:16, end:20 },
     },
     zoneLayout: {
-      16: { Rack:["Andrew","Kostas"], "Turf-A":[], "Turf-B":[], Back:["Hayley"] },
-      17: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Hayley"] },
-      18: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Hayley"] },
-      19: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah"], "Turf-B":[], Back:["Hayley"] },
+      16: { Rack:["Andrew","Kostas"], "Turf-A":["Chris E"], "Turf-B":[], Back:["Hayley"] },
+      17: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:["Hayley"] },
+      18: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:["Hayley"] },
+      19: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:["Hayley"] },
       20: { Rack:["Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
-    foundations: { 17:"Hayley", 19:"Elijah" },
+    foundations: { 17:"Hayley", 19:"Chris E" },
     foundationsFallback: ["Kostas","Andrew","Nick","Elijah","Hayley"],
     // Hayley always in back regardless of 9 rule
     backAlways: true,
