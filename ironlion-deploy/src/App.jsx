@@ -203,7 +203,7 @@ const DAY_CONFIG = {
       19: { Rack:["Kostas","Andrew"], "Turf-A":["Elijah","Chris E"], "Turf-B":[], Back:["Hayley"] },
       20: { Rack:["Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
-    foundations: { 17:"Hayley", 19:"Chris E" },
+    foundations: { 17:"Hayley", 19:"Elijah" },
     foundationsFallback: ["Kostas","Andrew","Nick","Elijah","Hayley"],
     // Hayley always in back regardless of 9 rule
     backAlways: true,
