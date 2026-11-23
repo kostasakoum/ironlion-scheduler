@@ -178,10 +178,10 @@ const DAY_CONFIG = {
     // zone layout per hour: zone -> ordered coach list (first = primary)
     zoneLayout: {
       15: { Rack:["Kostas"], "Turf-A":[], "Turf-B":[], Back:[] },
-      16: { Rack:["Andrew","Ricky"], "Turf-A":["Kostas"], "Turf-B":[], Back:["Hayley"] },
-      17: { Rack:["Andrew","Ricky"], "Turf-A":["Kostas"], "Turf-B":[], Back:["Hayley","Chris E"] },
-      18: { Rack:["Andrew","Ricky"], "Turf-A":["Kostas"], "Turf-B":[], Back:["Hayley","Chris E"] },
-      19: { Rack:["Andrew","Ricky"], "Turf-A":["Kostas"], "Turf-B":[], Back:["Hayley","Chris E"] },
+      16: { Rack:["Kostas","Andrew"], "Turf-A":[], "Turf-B":[], Back:["Hayley","Ricky"] },
+      17: { Rack:["Kostas","Andrew"], "Turf-A":["Chris E"], "Turf-B":[], Back:["Hayley","Ricky"] },
+      18: { Rack:["Kostas","Andrew"], "Turf-A":["Chris E"], "Turf-B":[], Back:["Hayley","Ricky"] },
+      19: { Rack:["Kostas","Andrew"], "Turf-A":["Chris E"], "Turf-B":[], Back:["Hayley","Ricky"] },
       20: { Rack:["Andrew"], "Turf-A":[], "Turf-B":[], Back:[] },
     },
     foundations: { 17:"Chris E", 19:"Chris E" },
